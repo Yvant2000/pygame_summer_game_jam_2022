@@ -1,0 +1,15 @@
+.idea/
+__pycache__/
+
+*.dist/
+*.build/
+cmake-build-debug/
+log.txt
+*.exe
+MANIFEST
+*.egg-info/
+*.egg
+*.obj
+*.exp
+*.lib
+*.pyd
