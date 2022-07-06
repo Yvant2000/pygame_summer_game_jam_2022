@@ -41,7 +41,7 @@ def debug_print() -> None:
     print(f"FPS: {DISPLAY.fps}")
     print(f"Delta: {DISPLAY.delta_time}")
     print(f"Caption: {DISPLAY.caption}")
-    print(f"Size: {DISPLAY.size}")
+    print(f"Size: {GAME.SURFACE.get_size()}")
     print()
 
 

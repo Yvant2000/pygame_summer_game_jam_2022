@@ -7,6 +7,7 @@ from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
 from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
+from scripts.room import Room, BedRoom
 
 
 class GAME_STATE(Enum):
@@ -20,7 +21,7 @@ class GAME:
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface(DISPLAY.size)
-    CURRENT_ROOM: int = 0
+    CURRENT_ROOM: Room = BedRoom()
     ESCAPE_PRESSED: bool = False
 
     @classmethod
@@ -50,6 +51,8 @@ class GAME:
 
         cls.performance_adjustment()
         cls.SURFACE.fill((0, 0, 0))
+        cls.CURRENT_ROOM.update(cls.SURFACE)
+        DISPLAY.display(cls.SURFACE)
 
     @classmethod
     def do_pause(cls) -> bool:

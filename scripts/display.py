@@ -44,6 +44,16 @@ class Display:
         return self.screen.get_size()
 
     @property
+    def width(self) -> int:
+        """Return the screen width."""
+        return self.screen.get_width()
+
+    @property
+    def height(self) -> int:
+        """Return the screen height."""
+        return self.screen.get_height()
+
+    @property
     def caption(self) -> str:
         """Return the caption of the screen."""
         return pygame_display.get_caption()[0]

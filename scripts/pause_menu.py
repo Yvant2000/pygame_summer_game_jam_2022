@@ -1,6 +1,6 @@
 from pygame import Surface
 from pygame.transform import scale
-from pygame import K_RETURN, K_ESCAPE, K_SPACE
+from pygame import mouse
 
 from scripts.display import DISPLAY, load_image
 from scripts.player import PLAYER
@@ -27,6 +27,8 @@ class PauseMenu:
         @return: True if the player pressed the enter key, False otherwise.
         """
         assert self._paused_surface is not None, "The pause_surface must be set before calling this function."
+
+        mouse.set_visible(True)
 
         surf: Surface = Surface(self.paused_surface.get_size())
         surf.blit(self._paused_surface, (0, 0))
