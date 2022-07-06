@@ -6,7 +6,7 @@ from pygame.time import Clock
 
 
 class Display:
-    def __init__(self, title: str = "") -> None:
+    def __init__(self) -> None:
         self.display_info: VideoInfo = pygame_display.Info()
         self.screen: Surface = pygame_display.set_mode(
             (self.display_info.current_w, self.display_info.current_h),
@@ -15,9 +15,6 @@ class Display:
         self._clock: Clock = Clock()
         self._fps: int = 0
         self._delta: float = 0.
-
-        if title:
-            pygame_display.set_caption(title)
 
     @property
     def size(self) -> tuple[int, int]:

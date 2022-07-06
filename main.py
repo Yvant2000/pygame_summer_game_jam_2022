@@ -17,6 +17,9 @@ pygame.init()
 from scripts.display import DISPLAY
 
 
+#### __INIT__ ####
+
+
 # EVENT LOOP #
 
 def events() -> bool:
