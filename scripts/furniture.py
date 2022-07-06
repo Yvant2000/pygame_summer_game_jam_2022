@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from scripts.display import load_image, repeat_texture
+from scripts.tv_mini_game import TvGame
 
 from pygame import Surface
 
@@ -47,6 +48,7 @@ class TV(Furniture):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.size: float = 0.5
+        self.mini_game: TvGame = TvGame()
 
     def static_surfaces(self) -> list[tuple]:
         return [
@@ -69,7 +71,12 @@ class TV(Furniture):
         ]
 
     def dynamic_surfaces(self) -> list[tuple]:
-        return []
+        self.mini_game.update()
+        return [
+            (self.mini_game.screen,
+             self.x-0.01, self.y + self.size, self.z-0.001,
+             self.x + self.size-0.1, self.y, self.z-0.001),
+        ]
 
 
 class Drawer(Furniture):
