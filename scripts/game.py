@@ -20,7 +20,7 @@ class GAME:
 
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
-    SURFACE: Surface = Surface(DISPLAY.size)
+    SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
     CURRENT_ROOM: Room = BedRoom()
     ESCAPE_PRESSED: bool = False
 
@@ -42,17 +42,18 @@ class GAME:
 
     @classmethod
     def run_game(cls):
-        if PLAYER.movements:
-            if cls.do_pause():
-                cls.STATE = GAME_STATE.PAUSE
-                PAUSE_MENU.paused_surface = cls.SURFACE
-                return
-            PLAYER.move()
 
         cls.performance_adjustment()
         cls.SURFACE.fill((0, 0, 0))
         cls.CURRENT_ROOM.update(cls.SURFACE)
         DISPLAY.display(cls.SURFACE)
+
+        if PLAYER.movements:
+            if cls.do_pause():
+                cls.STATE = GAME_STATE.PAUSE
+                PAUSE_MENU.paused_surface = cls.SURFACE
+                return
+            PLAYER.move(cls.SCREEN_SIZE_MULTIPLIER)
 
     @classmethod
     def do_pause(cls) -> bool:
@@ -69,7 +70,7 @@ class GAME:
     def performance_adjustment(cls):
         if DISPLAY.fps < 30:
             cls.SCREEN_SIZE_MULTIPLIER *= 0.99
-            cls.SCREEN_SIZE_MULTIPLIER = max(cls.SCREEN_SIZE_MULTIPLIER, 0.5)
+            cls.SCREEN_SIZE_MULTIPLIER = max(cls.SCREEN_SIZE_MULTIPLIER, 0.1)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,
                                    DISPLAY.size[1] * cls.SCREEN_SIZE_MULTIPLIER))
         elif DISPLAY.fps > 60:

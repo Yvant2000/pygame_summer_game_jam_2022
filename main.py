@@ -10,6 +10,7 @@ environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "True"
 
 import pygame
 from pygame import event as pygame_event
+from pygame import mouse
 pygame.init()
 
 # LOCAL IMPORTS #
@@ -20,6 +21,7 @@ from scripts.game import GAME
 #### __INIT__ ####
 
 DISPLAY.caption = "Game"  # TODO: find a game name
+mouse.set_visible(False)
 
 
 # EVENT LOOP #
@@ -43,6 +45,7 @@ def debug_print() -> None:
     print(f"Caption: {DISPLAY.caption}")
     print(f"Size: {GAME.SURFACE.get_size()}")
     print()
+    ...
 
 
 def main(debug: bool = False) -> None:

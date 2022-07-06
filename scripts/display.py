@@ -25,6 +25,16 @@ def lazy_load_images(*path: str) -> Generator:
         yield load_image(path, file_path)
 
 
+def repeat_texture(texture: Surface, x: int = 1, y: int = 1) -> Surface:
+    """Repeat a texture multiple times."""
+    assert x > 0 and y > 0, "x and y must be greater than 0"
+    surface = Surface((texture.get_width() * x, texture.get_height() * y)).convert_alpha()
+    for i in range(x):
+        for j in range(y):
+            surface.blit(texture, (i * texture.get_width(), j * texture.get_height()))
+
+    return surface.convert_alpha()
+
 class Display:
     FPS_LIMIT: int = 75
 

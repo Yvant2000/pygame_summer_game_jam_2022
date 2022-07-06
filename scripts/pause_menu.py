@@ -9,7 +9,7 @@ from scripts.player import PLAYER
 class PauseMenu:
     def __init__(self):
         self._paused_surface: Surface | None = None
-        self.pause_menu_image = load_image("data", "pause_menu", "pause_menu.png")
+        self.pause_menu_image = load_image("data", "pause_menu", "pause_menu.png").convert_alpha()
         self._enter_pressed: bool = True
 
     @property
@@ -32,13 +32,15 @@ class PauseMenu:
 
         surf: Surface = Surface(self.paused_surface.get_size())
         surf.blit(self._paused_surface, (0, 0))
-        scale(self.pause_menu_image, surf.get_size(), surf)
+        temp = scale(self.pause_menu_image, surf.get_size())
+        surf.blit(temp, (0, 0))
         DISPLAY.display(surf)
 
         if PLAYER.skip:
             if self._enter_pressed:
                 return False
             self._enter_pressed = True
+            mouse.set_visible(False)
             return True
         self._enter_pressed = False
         return False
