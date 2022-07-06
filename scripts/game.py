@@ -1,21 +1,23 @@
-from typing import enum, auto
+from enum import Enum, auto
 
 from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
 
 
-class GAME_STATE(enum.Enum):
+class GAME_STATE(Enum):
     SPLASH_SCREEN = auto()
+    MENU = auto()
 
 
-class Game:
+class GAME:
 
-    def __init__(self):
-        self.state = GAME_STATE.SPLASH_SCREEN
+    STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
 
-    def update(self):
+    @classmethod
+    def update(cls):
         PLAYER.update_keys()
 
-        match self.state:
+        match cls.STATE:
             case GAME_STATE.SPLASH_SCREEN:
-                SPLASH_SCREEN.update()
+                if SPLASH_SCREEN.update():
+                    cls.STATE = GAME_STATE.MENU

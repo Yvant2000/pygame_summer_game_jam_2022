@@ -15,7 +15,7 @@ pygame.init()
 # LOCAL IMPORTS #
 
 from scripts.display import DISPLAY
-
+from scripts.game import GAME
 
 #### __INIT__ ####
 
@@ -46,6 +46,7 @@ def debug_print() -> None:
 def main(debug: bool = False) -> None:
     while events():
         DISPLAY.update()
+        GAME.update()
         if debug:
             debug_print()
 
