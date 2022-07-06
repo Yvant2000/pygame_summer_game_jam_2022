@@ -5,6 +5,7 @@ More information int the [Pygame Discord Server](https://discord.com/invite/ZuB2
 ## Information 
 
 Game made during the Pygame - Summer Game Jam of 2022 in a few days. 
+![Pygame Summer Jam 2022 image](https://raw.githubusercontent.com/Yvant2000/pygame_summer_game_jam_2022/main/data/splash_screen/thUeMh.png)
 
 ## Credits
 
