@@ -10,16 +10,14 @@ environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "True"
 
 import pygame
 from pygame import event as pygame_event
+pygame.init()
 
 # LOCAL IMPORTS #
 
-from scripts.display import Display
+from scripts.display import DISPLAY
 
-#### __INIT__ ####
 
-pygame.init()
-display = Display()
-
+# EVENT LOOP #
 
 def events() -> bool:
     """Handle the pygame events.
@@ -32,15 +30,21 @@ def events() -> bool:
     return True
 
 
+# MAIN LOOP #
+
+def debug_print() -> None:
+    print(f"FPS: {DISPLAY.fps}")
+    print(f"Delta: {DISPLAY.delta_time}")
+    print(f"Caption: {DISPLAY.caption}")
+    print(f"Size: {DISPLAY.size}")
+    print()
+
+
 def main(debug: bool = False) -> None:
     while events():
-        display.update()
+        DISPLAY.update()
         if debug:
-            print(f"FPS: {display.fps}")
-            print(f"Delta: {display.delta_time}")
-            print(f"Caption: {display.caption}")
-            print(f"Size: {display.size}")
-            print()
+            debug_print()
 
 
 if __name__ == '__main__':

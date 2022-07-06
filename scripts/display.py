@@ -57,3 +57,6 @@ class Display:
         @param surface: The surface to display
         """
         scale(surface, self.size, self.screen)
+
+
+DISPLAY: Display = Display()
