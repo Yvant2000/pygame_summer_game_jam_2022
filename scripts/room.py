@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from pygame import Surface
 
 from scripts.player import PLAYER
-from scripts.furniture import Furniture, Test
+from scripts.furniture import Furniture, Test, TV
 
 from nostalgiaeraycasting import RayCaster
 
@@ -39,7 +39,7 @@ class Room(ABC):
 class BedRoom(Room):
     def __init__(self):
         super().__init__()
-        self.items.append(Test())
+        self.items.append(TV())
         self.load_static_surfaces(self.caster)
 
     def update(self, surface: Surface):
