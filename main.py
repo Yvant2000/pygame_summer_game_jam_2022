@@ -19,6 +19,8 @@ from scripts.game import GAME
 
 #### __INIT__ ####
 
+DISPLAY.caption = "Game"  # TODO: find a game name
+
 
 # EVENT LOOP #
 

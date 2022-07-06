@@ -24,15 +24,13 @@ class SplashScreen:
         """Allow the player to skip a splash screen.
         Waits for the player to stop pressing the skip key before allowing the player to skip another splash screen.
         @return: True if the player skipped the splash screen, False otherwise."""
-        if any(PLAYER.keys[key] for key in (K_RETURN, K_SPACE, K_ESCAPE)):
+        if PLAYER.skip:
             if self._skip:
                 return False
             self._skip = True
             return True
         self._skip = False
         return False
-
-
 
     def next(self) -> bool:
         """Set the splash image to the next image in the generator and return True if there is no more image.
