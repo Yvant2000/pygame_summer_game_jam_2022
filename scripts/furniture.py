@@ -21,8 +21,8 @@ class Furniture(ABC):
 
 
 class Test(Furniture):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.my_var: float = 0.0
 
     def static_surfaces(self) -> list[tuple]:
@@ -44,8 +44,8 @@ class Test(Furniture):
 
 
 class TV(Furniture):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.size: float = 0.5
 
     def static_surfaces(self) -> list[tuple]:

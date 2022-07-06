@@ -39,7 +39,7 @@ class Room(ABC):
 class BedRoom(Room):
     def __init__(self):
         super().__init__()
-        self.items.append(TV())
+        self.items.append(TV(-0.23, 1., 0.23))
         self.load_static_surfaces(self.caster)
 
     def update(self, surface: Surface):

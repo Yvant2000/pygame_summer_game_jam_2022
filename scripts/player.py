@@ -17,14 +17,14 @@ class Player:
 
         self.x: float = 0.
         self.y: float = 0.
-        self.z: float = 0.
+        self.z: float = -0.01
 
         self.height: float = 1.2
 
         self.speed: float = 2.5
 
-        self.rot_x: float = 0.
-        self.rot_y: float = 0.
+        self.rot_x: float = 8.
+        self.rot_y: float = 95.3
 
         self.FOV: float = 70.
         self.VIEW_DISTANCE: float = 50.
