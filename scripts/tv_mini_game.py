@@ -3,7 +3,7 @@ from math import sin, pi, cos
 from os.path import join as join_path
 
 from pygame import Surface, transform, mouse, Rect
-from pygame import K_a, K_d, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_RETURN, K_e
+from pygame import K_a, K_d, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_RETURN, K_e, K_w
 from pygame import mixer
 
 from scripts.display import DISPLAY, load_image
@@ -27,6 +27,7 @@ class TvGame:
         self.pause: bool = True
         self.enter_key: bool = True
         self.game_over: bool = False
+        self._gam_over_anim: float = 5.
 
     def update(self) -> bool:
 
@@ -48,6 +49,12 @@ class TvGame:
 
     def draw_game_over(self) -> None:
         self.surface.blit(self.game_over_image, (0, 0))
+        self._gam_over_anim -= DISPLAY.delta_time
+        if self._gam_over_anim < 0:
+            self.game_over = False
+            self._gam_over_anim = 5.
+            self.entities = [Knight(x=100, y=160)]
+            self.ev = 0
 
     def draw_pause(self):
         self.surface.blit(self.pause_image, (0, 0))
@@ -113,7 +120,7 @@ class TvGame:
                     if entity.attack.colliderect(knight.attack):
                         entity.damage()
                 if entity.attack is not None and (entity.damage_anim <= 0) and entity.life > 0 and knight_collision.colliderect(entity.attack):
-                    knight.damage(knight.x > entity.x)
+                    knight.damage(knight.x + knight.base.get_width()/2 < entity.x + entity.image.get_width()/2)
 
     def draw_entities(self):
         for entity in self.entities:
@@ -139,6 +146,7 @@ class Entity:
         self.attack: Rect | None = None
         self.damage_anim = 0
         self.life = 1
+        self.image: Surface | None = None
 
     def update(self):
         ...
@@ -243,7 +251,7 @@ class Cursy(Entity):
 
     def __init__(self, x: int = 0):
         super().__init__(x, 130, speed=6, right=False)
-        self.base = load_image("data", "mini_game", "Cursy", "Curs-base.png")
+        self.image = load_image("data", "mini_game", "Cursy", "Curs-base.png")
         self.wait = load_image("data", "mini_game", "Cursy", "Curs-wait.png")
         self.walk = load_image("data", "mini_game", "Cursy", "Curs-walk.png")
         self.pre_attack = load_image("data", "mini_game", "Cursy", "Curs-cut.png")
@@ -262,7 +270,7 @@ class Cursy(Entity):
 
     def update(self):
         self._anim += DISPLAY.delta_time
-        self.attack = self.base.get_rect(topleft=(self.x, self.y))
+        self.attack = self.image.get_rect(topleft=(self.x, self.y))
 
         if self.damage_anim > 0:
             self.damage_anim -= DISPLAY.delta_time
@@ -313,9 +321,9 @@ class Cursy(Entity):
         anim: int = int(self._anim * 50)
         match self.state:
             case Cursy.STATE.WAIT:
-                return self.base if anim % 60 < 30 else self.wait
+                return self.image if anim % 60 < 30 else self.wait
             case Cursy.STATE.WALKING:
-                return self.base if anim % 20 < 10 else self.walk
+                return self.image if anim % 20 < 10 else self.walk
             case Cursy.STATE.PRE_ATTACK:
                 return self.pre_attack
             case Cursy.STATE.ATTACK:
@@ -348,6 +356,7 @@ class Knight(Entity):
         self.walk = load_image("data", "mini_game", "Character", "Main-walk.png")
         self.pre_attack = load_image("data", "mini_game", "Character", "Main-cut.png")
         self.attack_surf = load_image("data", "mini_game", "Character", "Main-cutted.png")
+        self.hurt = load_image("data", "mini_game", "Character", "Main-Hit.png")
         self.state: Knight.STATE = Knight.STATE.WAIT
         self._anim: float = 0.
         self._jump: float = 0.
@@ -367,7 +376,7 @@ class Knight(Entity):
                 self.x -= DISPLAY.delta_time * self.speed
 
             self._jump += DISPLAY.delta_time
-            if self._jump < 0.5 and not (PLAYER.keys[K_SPACE] or PLAYER.keys[K_UP]):
+            if self._jump < 0.5 and not (PLAYER.keys[K_SPACE] or PLAYER.keys[K_UP] or PLAYER.keys[K_w]):
                 self._jump = 0.5
             self.y -= sin(self._jump * 2 * pi) * DISPLAY.delta_time * self.jump_force
             if self.y >= 160 or self._jump > 1.0:
@@ -408,7 +417,7 @@ class Knight(Entity):
                     self.state = Knight.STATE.WAIT
 
                 if self.state != Knight.STATE.JUMP and self.y == 160:
-                    if PLAYER.keys[K_SPACE] or PLAYER.keys[K_UP]:
+                    if PLAYER.keys[K_SPACE] or PLAYER.keys[K_UP] or PLAYER.keys[K_w]:
                         self.jump_sound.play()
                         self.state = Knight.STATE.JUMP
                         self._jump = 0
@@ -419,15 +428,17 @@ class Knight(Entity):
     def draw(self) -> Surface:
         mult = (abs(cos(self._jump * pi)) + 2) / 3
         surf = transform.scale(self.get_surf(), (self.base.get_width(), self.base.get_height() * mult))
-        if self.damage_anim > 0:
-            surf = surf.copy().convert_alpha()
-            temp = Surface(surf.get_size()).convert_alpha()
-            temp.fill((255, 0, 0, 50))
-            surf.blit(temp, (0, 0))
+        # if self.damage_anim > 0:
+        #     surf = surf.copy().convert_alpha()
+        #     temp = Surface(surf.get_size()).convert_alpha()
+        #     temp.fill((255, 0, 0, 50))
+        #     surf.blit(temp, (0, 0))
 
         return surf if self.right else transform.flip(surf, True, False)
 
     def get_surf(self) -> Surface:
+        if self.damage_anim > 0:
+            return self.hurt
         anim: int = int(self._anim * 50)
         match self.state:
             case Knight.STATE.WAIT:

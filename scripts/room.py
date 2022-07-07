@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from pygame import Surface
+from pygame import Surface, Rect
 
 from scripts.player import PLAYER
 from scripts.furniture import Furniture, Test, TV, BedRoomWalls, Drawer
@@ -14,6 +14,7 @@ class Room(ABC):
     def __init__(self):
         self.caster: RayCaster = RayCaster()
         self.items: list[Furniture] = []
+        self.collisions: list[Rect] = []
 
     def load_static_surfaces(self, caster):
         for item in self.items:
@@ -44,6 +45,13 @@ class BedRoom(Room):
         self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
         self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
+        self.collisions = [
+            Rect(-30, 30, 75, 75),
+            Rect(-200, 100, 450, 10),
+            Rect(-200, -200, 450, 10),
+            Rect(-200, -200, 10, 300),
+            Rect(250, -200, 10, 300),
+        ]
 
     def update(self, surface: Surface):
         super().update(surface)

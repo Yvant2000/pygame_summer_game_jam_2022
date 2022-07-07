@@ -1,7 +1,7 @@
 from enum import Enum, auto
 
 from pygame import K_ESCAPE
-from pygame import Surface
+from pygame import Surface, draw, transform
 
 from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
@@ -20,7 +20,7 @@ class GAME_STATE(Enum):
 class GAME:
 
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
-    SCREEN_SIZE_MULTIPLIER: float = 0.1
+    SCREEN_SIZE_MULTIPLIER: float = 0.05
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
     CURRENT_ROOM: Room = BedRoom()
     ESCAPE_PRESSED: bool = False
@@ -49,6 +49,7 @@ class GAME:
         cls.SURFACE.fill((0, 0, 0))
         cls.CURRENT_ROOM.update(cls.SURFACE)
         cls.display_text()
+        cls.draw_collisions()
         DISPLAY.display(cls.SURFACE)
 
         if PLAYER.movements:
@@ -56,7 +57,27 @@ class GAME:
                 cls.STATE = GAME_STATE.PAUSE
                 PAUSE_MENU.paused_surface = cls.SURFACE
                 return
-            PLAYER.move(cls.SCREEN_SIZE_MULTIPLIER)
+            PLAYER.move(cls.SCREEN_SIZE_MULTIPLIER, cls.CURRENT_ROOM.collisions)
+
+    @classmethod
+    def draw_collisions(cls):
+        left = min(cls.CURRENT_ROOM.collisions, key=lambda c: c.left).left
+        right = max(cls.CURRENT_ROOM.collisions, key=lambda c: c.right).right
+        top = min(cls.CURRENT_ROOM.collisions, key=lambda c: c.top).top
+        bottom = max(cls.CURRENT_ROOM.collisions, key=lambda c: c.bottom).bottom
+
+        left = min(left, int(PLAYER.x * 100))
+        right = max(right, int(PLAYER.x * 100 + 20))
+        top = min(top, int(PLAYER.z * 100))
+        bottom = max(bottom, int(PLAYER.z * 100 + 20))
+
+        surf = Surface((right - left, bottom - top)).convert_alpha()
+        surf.fill((0, 0, 0, 0))
+        for collision in cls.CURRENT_ROOM.collisions:
+            draw.rect(surf, (255, 0, 0, 255), (collision.left - left, collision.top - top, collision.width, collision.height), 100)
+        draw.rect(surf, (0, 255, 0, 255), (PLAYER.x*100 - left, PLAYER.z*100 - top, 20, 20), 5)
+        temp = transform.scale(surf, cls.SURFACE.get_size())
+        cls.SURFACE.blit(temp, (0, 0))
 
     @classmethod
     def display_text(cls):
