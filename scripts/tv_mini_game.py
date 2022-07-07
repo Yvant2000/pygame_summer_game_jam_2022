@@ -19,6 +19,8 @@ class TvGame:
         self.background = load_image("data", "mini_game", "Room.png")
         self.pause_image: Surface = load_image("data", "mini_game", "pause.png")
         self.game_over_image: Surface = load_image("data", "mini_game", "game_over.png")
+        self.music = mixer.Sound(join_path("data", "mini_game", "sound", "Monster Killer.wav"))
+        self.music.set_volume(0.7)
         self.background_deca: int = 0
         self.entities: list[Entity] = [Knight(x=100, y=160)]
         self.ev: int = 0
@@ -34,8 +36,7 @@ class TvGame:
         if self.pause:
             self.draw_pause()
         elif self.game_over:
-            if self.draw_game_over():
-                return True
+            self.draw_game_over()
         else:
             self.update_entities()
             self.events()
@@ -43,23 +44,17 @@ class TvGame:
         self.screen.fill((0, 0, 0, 0))
         fish(self.surface, self.screen, 0.2)
 
-        return False
+        return self.game_over
 
-    def draw_game_over(self) -> bool:
+    def draw_game_over(self) -> None:
         self.surface.blit(self.game_over_image, (0, 0))
-        if PLAYER.skip:
-            if not self.enter_key:
-                self.enter_key = True
-                return True
-        else:
-            self.enter_key = False
-        return False
 
     def draw_pause(self):
         self.surface.blit(self.pause_image, (0, 0))
         if PLAYER.skip:
             if not self.enter_key:
                 self.enter_key = True
+                self.music.play(-1, )
                 mixer.Sound(join_path("data", "mini_game", "sound", "blipSelect.wav")).play()
                 self.pause = False
         else:
@@ -103,6 +98,7 @@ class TvGame:
             if self.entities[1].state == Cursy.STATE.RUNNING:
                 if abs(self.entities[0].x - self.entities[1].x) < 8:
                     mixer.Sound(join_path("data", "mini_game", "sound", "game over.wav")).play()
+                    self.music.fadeout(3000)
                     self.game_over = True
                     self.enter_key = True
 
@@ -274,7 +270,7 @@ class Cursy(Entity):
 
         match self.state:
             case Cursy.STATE.WAIT:
-                if self.attacks > 5:
+                if self.attacks > 3:
                     self.state = Cursy.STATE.ANGRY
                     self._anim = 0.
                 elif self.goal is not None:

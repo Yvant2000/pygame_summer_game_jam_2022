@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 
+from pygame import Surface
+
 from scripts.display import load_image, repeat_texture
 from scripts.tv_mini_game import TvGame
-
-from pygame import Surface
+from scripts.text import Text
 
 
 class Furniture(ABC):
@@ -49,6 +50,7 @@ class TV(Furniture):
         super().__init__(*args, **kwargs)
         self.size: float = 0.5
         self.mini_game: TvGame = TvGame()
+        self.end_game: bool = False
 
     def static_surfaces(self) -> list[tuple]:
         return [
@@ -71,8 +73,14 @@ class TV(Furniture):
         ]
 
     def dynamic_surfaces(self) -> list[tuple]:
-        if self.mini_game.update():
-            ...
+        if self.mini_game.update() and not self.end_game:
+            from scripts.game import GAME
+            from scripts.player import PLAYER
+            GAME.TEXT = Text("It's time to go to bed.",
+                             lambda: PLAYER.__setattr__("movements", True),
+                             color=(15, 0, 0),
+                             sound="mum_text.wav")
+            self.end_game = True
         return [
             (self.mini_game.screen,
              self.x-0.01, self.y + self.size, self.z-0.001,

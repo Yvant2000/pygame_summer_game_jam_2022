@@ -8,6 +8,7 @@ from scripts.splash_screen import SPLASH_SCREEN
 from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
 from scripts.room import Room, BedRoom
+from scripts.text import Text
 
 
 class GAME_STATE(Enum):
@@ -23,6 +24,7 @@ class GAME:
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
     CURRENT_ROOM: Room = BedRoom()
     ESCAPE_PRESSED: bool = False
+    TEXT: Text | None = None
 
     @classmethod
     def update(cls):
@@ -46,6 +48,7 @@ class GAME:
         cls.performance_adjustment()
         cls.SURFACE.fill((0, 0, 0))
         cls.CURRENT_ROOM.update(cls.SURFACE)
+        cls.display_text()
         DISPLAY.display(cls.SURFACE)
 
         if PLAYER.movements:
@@ -54,6 +57,13 @@ class GAME:
                 PAUSE_MENU.paused_surface = cls.SURFACE
                 return
             PLAYER.move(cls.SCREEN_SIZE_MULTIPLIER)
+
+    @classmethod
+    def display_text(cls):
+        if cls.TEXT is None:
+            return
+        if cls.TEXT.draw(cls.SURFACE, cls.SURFACE.get_rect().centerx, cls.SURFACE.get_rect().height * 0.9):
+            cls.TEXT = None
 
     @classmethod
     def do_pause(cls) -> bool:
