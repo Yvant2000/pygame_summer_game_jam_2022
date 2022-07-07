@@ -1,10 +1,11 @@
 from typing import Sequence
-
+from os.path import join as join_path
 from math import sin, cos, radians, pi
 
 from pygame import Rect
 from pygame import key, mouse
 from pygame import K_ESCAPE, K_RETURN, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_DOWN, K_w, K_a, K_s, K_d
+from pygame.mixer import Sound
 
 from scripts.display import DISPLAY
 
@@ -22,7 +23,7 @@ class Player:
 
         self.height: float = 1.2
 
-        self.speed: float = 2.5
+        self.speed: float = 1.4
 
         self.rot_x: float = 7.0
         self.rot_y: float = 93.6
@@ -31,6 +32,13 @@ class Player:
         self.VIEW_DISTANCE: float = 50.
 
         self.mouse_sensitivity: float = 0.05
+
+        self.step_sound0: Sound = Sound(join_path("data", "sounds", "step0.mp3"))
+        self.step_sound1: Sound = Sound(join_path("data", "sounds", "step1.mp3"))
+        # self.step_wood: Sound = Sound(join_path("data", "sounds", "wood_step.mp3"))
+
+        self.step: float = 0.1
+        self.foot: bool = True
 
     @property
     def skip(self) -> bool:
@@ -56,6 +64,11 @@ class Player:
 
         delta: float = DISPLAY.delta_time
 
+        if self.step <= 0:
+            (self.step_sound1 if self.foot else self.step_sound0).play()
+            self.foot = not self.foot
+            self.step = 0.7
+
         if mouse.get_focused() and key.get_focused():
 
             rel = mouse.get_rel()
@@ -67,8 +80,10 @@ class Player:
                 mouse.set_pos(DISPLAY.width // 2, DISPLAY.height // 2)
 
         save = self.z, self.x
+        moved = False
 
         if self._keys[K_w] or self._keys[K_UP]:
+            moved = True
             self.z += delta * self.speed * sin(radians(self.rot_y))
             if self.test_collisions(collisions):
                 self.z = save[0]
@@ -76,6 +91,7 @@ class Player:
             if self.test_collisions(collisions):
                 self.x = save[1]
         elif self._keys[K_s] or self._keys[K_DOWN]:
+            moved = True
             self.z -= delta * self.speed * sin(radians(self.rot_y))
             if self.test_collisions(collisions):
                 self.z = save[0]
@@ -84,6 +100,7 @@ class Player:
                 self.x = save[1]
 
         if self._keys[K_a] or self._keys[K_LEFT]:
+            moved = True
             self.z += delta * self.speed * sin(radians(self.rot_y) + d_pi)
             if self.test_collisions(collisions):
                 self.z = save[0]
@@ -91,12 +108,18 @@ class Player:
             if self.test_collisions(collisions):
                 self.x = save[1]
         elif self._keys[K_d] or self._keys[K_RIGHT]:
+            moved = True
             self.z -= delta * self.speed * sin(radians(self.rot_y) + d_pi)
             if self.test_collisions(collisions):
                 self.z = save[0]
             self.x -= delta * self.speed * cos(radians(self.rot_y) + d_pi)
             if self.test_collisions(collisions):
                 self.x = save[1]
+
+        if moved:
+            self.step -= delta
+        else:
+            self.step = 0.1
 
 
 PLAYER: Player = Player()

@@ -214,7 +214,7 @@ class Zombie(Entity):
         self.damage_anim -= DISPLAY.delta_time
         if self.damage_anim < 0:
             if self.life <= 0:
-                self.y += DISPLAY.delta_time * 60
+                self.y += DISPLAY.delta_time * 70
 
     def draw(self) -> Surface:
         if self.damage_anim > 0:

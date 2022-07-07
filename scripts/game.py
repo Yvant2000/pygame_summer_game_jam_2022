@@ -7,7 +7,7 @@ from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
 from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
-from scripts.room import Room, BedRoom
+from scripts.room import Room, LivingRoom
 from scripts.text import Text
 
 
@@ -20,9 +20,9 @@ class GAME_STATE(Enum):
 class GAME:
 
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
-    SCREEN_SIZE_MULTIPLIER: float = 0.05
+    SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
-    CURRENT_ROOM: Room = BedRoom()
+    CURRENT_ROOM: Room = LivingRoom()
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
 
@@ -104,8 +104,8 @@ class GAME:
             cls.SCREEN_SIZE_MULTIPLIER = max(cls.SCREEN_SIZE_MULTIPLIER, 0.1)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,
                                    DISPLAY.size[1] * cls.SCREEN_SIZE_MULTIPLIER))
-        elif DISPLAY.fps > 60:
-            cls.SCREEN_SIZE_MULTIPLIER *= 1.01
+        elif DISPLAY.fps > 40:
+            cls.SCREEN_SIZE_MULTIPLIER *= 1.005
             cls.SCREEN_SIZE_MULTIPLIER = min(cls.SCREEN_SIZE_MULTIPLIER, 1.)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,
                                    DISPLAY.size[1] * cls.SCREEN_SIZE_MULTIPLIER))

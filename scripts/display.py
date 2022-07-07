@@ -35,6 +35,7 @@ def repeat_texture(texture: Surface, x: int = 1, y: int = 1) -> Surface:
 
     return surface.convert_alpha()
 
+
 class Display:
     FPS_LIMIT: int = 75
 
