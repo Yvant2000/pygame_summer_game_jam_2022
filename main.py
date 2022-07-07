@@ -22,6 +22,7 @@ from scripts.game import GAME
 
 DISPLAY.caption = "Game"  # TODO: find a game name
 mouse.set_visible(False)
+pygame.mixer.init()
 
 
 # EVENT LOOP #

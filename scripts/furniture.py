@@ -71,7 +71,8 @@ class TV(Furniture):
         ]
 
     def dynamic_surfaces(self) -> list[tuple]:
-        self.mini_game.update()
+        if self.mini_game.update():
+            ...
         return [
             (self.mini_game.screen,
              self.x-0.01, self.y + self.size, self.z-0.001,

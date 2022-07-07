@@ -1,8 +1,10 @@
 from enum import Enum, auto
 from math import sin, pi, cos
+from os.path import join as join_path
 
 from pygame import Surface, transform, mouse, Rect
-from pygame import K_a, K_d, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_RETURN, K_e, K_ESCAPE
+from pygame import K_a, K_d, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_RETURN, K_e
+from pygame import mixer
 
 from scripts.display import DISPLAY, load_image
 from scripts.player import PLAYER
@@ -16,19 +18,24 @@ class TvGame:
         self.surface = Surface((256, 224)).convert_alpha()
         self.background = load_image("data", "mini_game", "Room.png")
         self.pause_image: Surface = load_image("data", "mini_game", "pause.png")
+        self.game_over_image: Surface = load_image("data", "mini_game", "game_over.png")
         self.background_deca: int = 0
         self.entities: list[Entity] = [Knight(x=100, y=160)]
         self.ev: int = 0
         self.pause: bool = True
         self.enter_key: bool = True
+        self.game_over: bool = False
 
-    def update(self):
+    def update(self) -> bool:
 
         self.move()
         self.draw_background()
         self.draw_entities()
         if self.pause:
             self.draw_pause()
+        elif self.game_over:
+            if self.draw_game_over():
+                return True
         else:
             self.update_entities()
             self.events()
@@ -36,11 +43,24 @@ class TvGame:
         self.screen.fill((0, 0, 0, 0))
         fish(self.surface, self.screen, 0.2)
 
+        return False
+
+    def draw_game_over(self) -> bool:
+        self.surface.blit(self.game_over_image, (0, 0))
+        if PLAYER.skip:
+            if not self.enter_key:
+                self.enter_key = True
+                return True
+        else:
+            self.enter_key = False
+        return False
+
     def draw_pause(self):
         self.surface.blit(self.pause_image, (0, 0))
         if PLAYER.skip:
             if not self.enter_key:
                 self.enter_key = True
+                mixer.Sound(join_path("data", "mini_game", "sound", "blipSelect.wav")).play()
                 self.pause = False
         else:
             self.enter_key = False
@@ -49,7 +69,7 @@ class TvGame:
         if self.background_deca > 102 and self.ev == 0:
             self.entities.append(Bat(x=400, y=150, right=False))
             self.entities.append(Bat(x=380, y=50, speed=42, right=False))
-            self.entities.append(Bat(x=90, y=80, speed=38))
+            self.entities.append(Bat(x=80, y=80, speed=38))
             self.entities.append(Zombie(x=420, speed=18, right=False))
             self.ev += 1
 
@@ -58,15 +78,46 @@ class TvGame:
             self.entities.append(Zombie(x=140, speed=25))
             self.entities.append(Zombie(x=420, speed=20, right=False))
 
+        if self.background_deca > 200 and self.ev == 2:
+            self.ev += 1
+            self.entities.append(Bat(x=500, y=140, speed=50, right=False))
+            self.entities.append(Zombie(x=180, speed=30))
+            self.entities.append(Bat(x=520, y=60, speed=25))
+
+        if self.background_deca > 250 and self.ev == 3:
+            self.ev += 1
+            self.entities.append(Bat(x=550, y=50, speed=32, right=False))
+            self.entities.append(Bat(x=650, y=85, speed=28, right=False))
+            self.entities.append(Bat(x=700, y=120, speed=38, right=False))
+            self.entities.append(Bat(x=230, y=140, speed=32))
+            self.entities.append(Zombie(x=220, speed=28))
+            self.entities.append(Zombie(x=200, speed=25))
+            self.entities.append(Zombie(x=600, speed=40, right=False))
+
+        if self.background_deca > 450 and self.ev == 4:
+            self.entities = [self.entities[0], Cursy(x=750)]
+            self.entities[1].goal = self.entities[0]
+            self.ev += 1
+
+        if self.ev == 5:
+            if self.entities[1].state == Cursy.STATE.RUNNING:
+                if abs(self.entities[0].x - self.entities[1].x) < 8:
+                    mixer.Sound(join_path("data", "mini_game", "sound", "game over.wav")).play()
+                    self.game_over = True
+                    self.enter_key = True
+
     def update_entities(self):
         knight: Knight = self.entities[0]  # type: ignore
+        knight_collision: Rect = Rect(knight.x + knight.base.get_width() // 4, knight.y + knight.base.get_height() // 4,
+                                      knight.base.get_width() // 4, knight.base.get_height() // 4)
         for entity in self.entities:
             entity.update()
-            if entity is not knight and knight.attack is not None:
-                if entity.attack.colliderect(knight.attack):
-                    entity.damage()
-            if entity.damage_anim == 0 and entity.life > 0 and entity.attack.colliderect(knight.base.get_rect(topleft=(knight.x, knight.y))):
-                knight.damage()
+            if entity is not knight:
+                if knight.attack is not None:
+                    if entity.attack.colliderect(knight.attack):
+                        entity.damage()
+                if entity.attack is not None and (entity.damage_anim <= 0) and entity.life > 0 and knight_collision.colliderect(entity.attack):
+                    knight.damage(knight.x > entity.x)
 
     def draw_entities(self):
         for entity in self.entities:
@@ -99,7 +150,7 @@ class Entity:
     def draw(self) -> Surface:
         ...
 
-    def damage(self):
+    def damage(self, direction: bool = False):
         ...
 
 
@@ -110,6 +161,7 @@ class Bat(Entity):
         self.image2 = load_image("data", "mini_game", "Bat", "Bat2.png")
         self.hit1 = load_image("data", "mini_game", "Bat", "Bat1Hit.png")
         self.hit2 = load_image("data", "mini_game", "Bat", "Bat2Hit.png")
+        self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "BhitHurt.wav"))
         self._anim: float = 0.
         self.death_anim = 0
 
@@ -126,7 +178,10 @@ class Bat(Entity):
         surf = self.image if int(self._anim * 2) % 2 else self.image2
         return surf if not self.right else transform.flip(surf, True, False)
 
-    def damage(self):
+    def damage(self, _=False):
+        if self.life == 0:
+            return
+        self.hurt_sound.play()
         self.life = 0
         self.damage_anim = 1
         self.image = self.hit1
@@ -142,6 +197,7 @@ class Zombie(Entity):
         self.image4 = load_image("data", "mini_game", "Zombie", "ZombieL2.png")
         self.hit1 = load_image("data", "mini_game", "Zombie", "ZombieLHit.png")
         self.hit2 = load_image("data", "mini_game", "Zombie", "ZombieRHit.png")
+        self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "ZhitHurt.wav"))
         self._anim: float = 0.
         self.life: int = 2
         self.damage_anim: float = 0
@@ -154,7 +210,7 @@ class Zombie(Entity):
         self.damage_anim -= DISPLAY.delta_time
         if self.damage_anim < 0:
             if self.life <= 0:
-                self.y += DISPLAY.delta_time * 30
+                self.y += DISPLAY.delta_time * 60
 
     def draw(self) -> Surface:
         if self.damage_anim > 0:
@@ -168,11 +224,116 @@ class Zombie(Entity):
             else:
                 return self.image3 if int(self._anim * 1.5) % 2 else self.image4
 
-    def damage(self):
+    def damage(self, _=False):
+        if self.life <= 0:
+            return
         if self.damage_anim > 0:
             return
+        self.hurt_sound.play()
         self.damage_anim = 0.5
         self.life -= 1
+        self.x += 30 * ((-1) ** self.right)
+
+
+class Cursy(Entity):
+
+    class STATE(Enum):
+        WAIT = auto()
+        WALKING = auto()
+        PRE_ATTACK = auto()
+        ATTACK = auto()
+        RUNNING = auto()
+        ANGRY = auto()
+
+    def __init__(self, x: int = 0):
+        super().__init__(x, 130, speed=6, right=False)
+        self.base = load_image("data", "mini_game", "Cursy", "Curs-base.png")
+        self.wait = load_image("data", "mini_game", "Cursy", "Curs-wait.png")
+        self.walk = load_image("data", "mini_game", "Cursy", "Curs-walk.png")
+        self.pre_attack = load_image("data", "mini_game", "Cursy", "Curs-cut.png")
+        self.attack_sprite = load_image("data", "mini_game", "Cursy", "Curs-cutted.png")
+        self.hurt = load_image("data", "mini_game", "Cursy", "Curs-Hit.png")
+
+        self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "ChitHurt.wav"))
+        self.attack_sound = mixer.Sound(join_path("data", "mini_game", "sound", "Cattack.wav"))
+
+        self.damage_anim: float = 0.
+
+        self.state = Cursy.STATE.WAIT
+        self._anim: float = 0
+        self.goal: Knight | None = None
+        self.attacks: int = 0
+
+    def update(self):
+        self._anim += DISPLAY.delta_time
+        self.attack = self.base.get_rect(topleft=(self.x, self.y))
+
+        if self.damage_anim > 0:
+            self.damage_anim -= DISPLAY.delta_time
+            return
+
+        match self.state:
+            case Cursy.STATE.WAIT:
+                if self.attacks > 5:
+                    self.state = Cursy.STATE.ANGRY
+                    self._anim = 0.
+                elif self.goal is not None:
+                    if abs(self.goal.x - self.x) < 120:
+                        self.state = Cursy.STATE.WALKING
+            case Cursy.STATE.WALKING:
+                self.right = self.goal.x > self.x
+                self.x += self.speed * DISPLAY.delta_time * ((-1) ** (not self.right))
+                if abs(self.goal.x - self.x) < 35:
+                    self.state = Cursy.STATE.PRE_ATTACK
+                    self._anim = 0.
+            case Cursy.STATE.PRE_ATTACK:
+                if self._anim > 0.6:
+                    self.state = Cursy.STATE.ATTACK
+                    self.x += 25 * ((-1) ** (not self.right))
+                    self.attack_sound.play()
+            case Cursy.STATE.ATTACK:
+                if self._anim > 1.2:
+                    self.state = Cursy.STATE.WAIT
+                    self.attacks += 1
+
+            case Cursy.STATE.ANGRY:
+                if self._anim > 3:
+                    self.state = Cursy.STATE.RUNNING
+
+            case Cursy.STATE.RUNNING:
+                self.speed += DISPLAY.delta_time
+                self.right = self.goal.x > self.x
+                self.x += self.speed * DISPLAY.delta_time * ((-1) ** (not self.right)) * 6
+
+    def draw(self) -> Surface:
+        surf = self.get_surf()
+        if self.right:
+            return transform.flip(surf, True, False)
+        return surf
+
+    def get_surf(self) -> Surface:
+        if self.damage_anim > 0:
+            return self.hurt
+        anim: int = int(self._anim * 50)
+        match self.state:
+            case Cursy.STATE.WAIT:
+                return self.base if anim % 60 < 30 else self.wait
+            case Cursy.STATE.WALKING:
+                return self.base if anim % 20 < 10 else self.walk
+            case Cursy.STATE.PRE_ATTACK:
+                return self.pre_attack
+            case Cursy.STATE.ATTACK:
+                return self.attack_sprite
+            case Cursy.STATE.RUNNING:
+                return self.attack_sprite if anim % 20 < 10 else self.walk
+            case Cursy.STATE.ANGRY:
+                return self.wait
+
+    def damage(self, _=False):
+        if self.damage_anim > 0:
+            return
+        self.damage_anim = 0.2
+        self.hurt_sound.play()
 
 
 class Knight(Entity):
@@ -185,7 +346,7 @@ class Knight(Entity):
         JUMP = auto()
 
     def __init__(self, x: int = 0, y: int = 0):
-        super().__init__(x, y, 30)
+        super().__init__(x, y, 35)
         self.base = load_image("data", "mini_game", "Character", "Main-base.png")
         self.wait = load_image("data", "mini_game", "Character", "Main-wait.png")
         self.walk = load_image("data", "mini_game", "Character", "Main-walk.png")
@@ -195,6 +356,9 @@ class Knight(Entity):
         self._anim: float = 0.
         self._jump: float = 0.
         self.jump_force: float = 200
+        self.jump_sound = mixer.Sound(join_path("data", "mini_game", "sound", "jump.wav"))
+        self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "PhitHurt.wav"))
+        self.attack_sound = mixer.Sound(join_path("data", "mini_game", "sound", "attack.wav"))
 
     def update(self):
         self.damage_anim -= DISPLAY.delta_time
@@ -220,6 +384,7 @@ class Knight(Entity):
         match self.state:
             case Knight.STATE.PRE_ATTACK:
                 if self._anim > 0.2:
+                    self.attack_sound.play()
                     self.state = Knight.STATE.ATTACK
             case Knight.STATE.ATTACK:
                 self.attack = Rect(self.x + (self.base.get_width()/2 if self.right else 0), self.y,
@@ -248,6 +413,7 @@ class Knight(Entity):
 
                 if self.state != Knight.STATE.JUMP and self.y == 160:
                     if PLAYER.keys[K_SPACE] or PLAYER.keys[K_UP]:
+                        self.jump_sound.play()
                         self.state = Knight.STATE.JUMP
                         self._jump = 0
                 if PLAYER.keys[K_RETURN] or mouse.get_pressed()[0] or PLAYER.keys[K_e]:
@@ -271,7 +437,7 @@ class Knight(Entity):
             case Knight.STATE.WAIT:
                 return self.wait if anim % 20 < 10 else self.base
             case Knight.STATE.WALK:
-                return self.walk if anim % 10 < 5 else self.base
+                return self.walk if anim % 20 < 10 else self.base
             case Knight.STATE.PRE_ATTACK:
                 return self.pre_attack
             case Knight.STATE.ATTACK:
@@ -279,5 +445,9 @@ class Knight(Entity):
             case Knight.STATE.JUMP:
                 return self.base
 
-    def damage(self):
+    def damage(self, direction: bool = False):
+        if self.damage_anim > 0:
+            return
+        self.hurt_sound.play()
         self.damage_anim = 0.5
+        self.x += 20 * ((-1) ** direction)
