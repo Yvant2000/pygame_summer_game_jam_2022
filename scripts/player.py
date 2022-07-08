@@ -74,7 +74,7 @@ class Player:
             rel = mouse.get_rel()
             self.rot_x -= float(rel[1]) * self.mouse_sensitivity
             self.rot_y = (self.rot_y - float(rel[0]) * self.mouse_sensitivity) % 360
-            self.rot_x = max(min(self.rot_x, 30), -30)
+            self.rot_x = max(min(self.rot_x, 35 - self.y * 3), -35 + self.y * 3)
 
             if rel[0] or rel[1]:
                 mouse.set_pos(DISPLAY.width // 2, DISPLAY.height // 2)

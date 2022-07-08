@@ -11,6 +11,9 @@ from scripts.room import Room, LivingRoom
 from scripts.text import Text
 
 
+from nostalgiaefilters import vignette
+
+
 class GAME_STATE(Enum):
     SPLASH_SCREEN = auto()
     GAME = auto()
@@ -48,6 +51,7 @@ class GAME:
         cls.performance_adjustment()
         cls.SURFACE.fill((0, 0, 0))
         cls.CURRENT_ROOM.update(cls.SURFACE)
+        vignette(cls.SURFACE, inner_radius=cls.SURFACE.get_width()/6, strength=2)
         cls.display_text()
         cls.draw_collisions()
         DISPLAY.display(cls.SURFACE)

@@ -187,38 +187,6 @@ class Drawer(Furniture):
         return []
 
 
-class BedRoomWalls(Furniture):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def static_surfaces(self) -> list[tuple]:
-        return [
-            (repeat_texture(load_image("data", "textures", "wall", "light_wood.png"), 2, 2),
-             self.x-2.01, self.y, self.z+1.01,
-             self.x + 2.51, self.y, self.z-2.01,
-             self.x-2.01, self.y, self.z-2.01,),
-            (repeat_texture(load_image("data", "textures", "wall", "ceiling.png"), 2, 2),
-             self.x-2.01, self.y + 3, self.z+1.01,
-             self.x + 2.51, self.y + 3, self.z - 2.01,
-             self.x - 2.01, self.y + 3, self.z - 2.01,),
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
-             self.x-2, self.y+3, self.z+1,
-             self.x + 2.5, self.y, self.z+1,),
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
-                self.x-2, self.y+3, self.z-2,
-                self.x-2, self.y, self.z+1,),
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
-                self.x+2.5, self.y+3, self.z-2,
-                self.x-2, self.y, self.z-2,),
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
-             self.x + 2.5, self.y + 3, self.z + 1,
-             self.x + 2.5, self.y, self.z - 2,),
-        ]
-
-    def dynamic_surfaces(self) -> list[tuple]:
-        return []
-
-
 class LivingRoomWalls(Furniture):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -321,12 +289,35 @@ class Corridor(Furniture):
 
     def static_surfaces(self) -> list[tuple]:
         return [
-            (load_image("data", "textures", "wall", "corridor_wall.png"),
+            (load_image("data", "textures", "wall", "corridor_wall.png"),  # INNER
              self.x + 1.8, self.y + 5.5, self.z + 1.0,
              self.x + 1.8, self.y, self.z + 3.0,),
-            (load_image("data", "textures", "wall", "corridor_wall.png"),
+            (load_image("data", "textures", "wall", "corridor_wall.png"),  # RIGHT
              self.x + 2.5, self.y + 5.5, self.z + 1.0,
-             self.x + 2.5, self.y, self.z + 5.0,),
+             self.x + 2.5, self.y, self.z + 4.0,),
+
+            (load_image("data", "textures", "wall", "corridor_wall.png"),  # LEFT
+             self.x - 2.0, self.y + 5.5, self.z + 3.0,
+             self.x - 2.0, self.y + 1.9, self.z + 4.0,),
+
+            (repeat_texture(load_image("data", "textures", "wall", "corridor_wall.png"), 2),  # BACK
+             self.x - 2.0, self.y + 5.5, self.z + 3.0,
+             self.x + 1.8, self.y + 1.9, self.z + 3.0,),
+
+            (load_image("data", "textures", "wall", "corridor_wall_front.png"),  # FRONT
+             self.x - 2.0, self.y + 5.5, self.z + 4.0,
+             self.x + 2.5, self.y + 1.9, self.z + 4.0,),
+
+            (load_image("data", "textures", "wall", "corridor_wall.png"),
+             self.x + 1.8, self.y + 5., self.z + 3.,
+             self.x + 2.5, self.y + 3., self.z + 1.,
+             self.x + 1.8, self.y + 3., self.z + 1.,),
+
+            (repeat_texture(load_image("data", "textures", "wall", "ceiling.png"), 2),
+             self.x - 2, self.y + 5., self.z + 4.,
+             self.x + 2.5, self.y + 4.99, self.z + 3.0,
+             self.x - 2, self.y + 4.99, self.z + 3.0,),
+
             (repeat_texture(load_image("data", "textures", "wall", "light_wood.png"), 2),
              self.x - 2, self.y + 2., self.z + 4.,
              self.x + 2.5, self.y + 1.99, self.z + 3.0,
@@ -337,4 +328,37 @@ class Corridor(Furniture):
         return []
 
 
+class BedRoomWalls(Furniture):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (repeat_texture(load_image("data", "textures", "wall", "light_wood.png"), 2, 2),
+             self.x-2.5, self.y + 2., self.z+7.,
+             self.x, self.y + 1.99, self.z+3.99,
+             self.x-2.5, self.y + 1.99, self.z+3.99,),
+            (repeat_texture(load_image("data", "textures", "wall", "ceiling.png"), 2, 2),
+             self.x-2.5, self.y + 5., self.z+7.,
+             self.x, self.y + 5., self.z+4.,
+             self.x-2.5, self.y + 5., self.z+4.,),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # LEFT
+             self.x - 2.5, self.y + 5.1, self.z + 4.,
+             self.x - 2.5, self.y + 1.9, self.z + 7.),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # RIGHT
+             self.x, self.y + 5.1, self.z + 7.,
+             self.x, self.y + 1.9, self.z + 4.01),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # BACK
+             self.x - 2.5, self.y + 5.1, self.z + 7.,
+             self.x, self.y + 1.9, self.z + 7.),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # FRONT
+             self.x - 4., self.y + 5.1, self.z + 4.,
+             self.x - 2.0, self.y + 1.9, self.z + 4.),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
