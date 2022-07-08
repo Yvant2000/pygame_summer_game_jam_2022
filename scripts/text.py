@@ -21,6 +21,7 @@ class Text:
         self.letters: int = 0
         self.fade_out: float = fade_out
         self.sound: Sound | None = None if sound is None else Sound(join_path("data", "sounds", sound))
+        self.sound.set_volume(0.2)
 
     def draw(self, surface: Surface, center_x: int, center_y: int) -> bool:
         self.counter += DISPLAY.delta_time

@@ -28,6 +28,7 @@ class GAME:
     CURRENT_ROOM: Room = LivingRoom()
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
+    VIGNETTE: float = 0
 
     @classmethod
     def update(cls):
@@ -51,7 +52,7 @@ class GAME:
         cls.performance_adjustment()
         cls.SURFACE.fill((0, 0, 0))
         cls.CURRENT_ROOM.update(cls.SURFACE)
-        vignette(cls.SURFACE, inner_radius=cls.SURFACE.get_width()/6, strength=2)
+        vignette(cls.SURFACE, inner_radius=-cls.SURFACE.get_width()/6, strength=cls.VIGNETTE)
         cls.display_text()
         # cls.draw_collisions()
         DISPLAY.display(cls.SURFACE)

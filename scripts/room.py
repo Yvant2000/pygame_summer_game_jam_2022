@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
+from os.path import join as join_path
 
 from pygame import Surface, Rect
+from pygame.mixer import Sound
 
 from scripts.player import PLAYER
 from scripts.furniture import Furniture
+from scripts.display import DISPLAY
+from scripts.text import Text
 
 from nostalgiaeraycasting import RayCaster
 
@@ -53,7 +57,7 @@ class LivingRoom(Room):
         self.items.append(Window(x=1., y=0.8, z=-2.99))
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
-        self.items.append(Door(x=1.8, y=2.0, z=3.99,))
+        self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
 
         # self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
@@ -146,3 +150,93 @@ class BedRoom(Room):
         if PLAYER.x >= 1.:
             from scripts.game import GAME
             GAME.CURRENT_ROOM = Corridor()
+        if PLAYER.z > 4.5:
+            from scripts.game import GAME
+            PLAYER.movements = False
+            PLAYER.x = -0.5
+            PLAYER.z = 5.5
+            PLAYER.y = 2.
+            PLAYER.rot_y = 220
+            PLAYER.rot_x = 5.
+            Sound(join_path("data", "sounds", "door.mp3")).play()
+            GAME.CURRENT_ROOM = BedRoomNightmare()
+
+
+class BedRoomNightmare(Room):
+    def __init__(self):
+        from scripts.furniture import Door, Corridor, BedRoomWalls, ClosetClosed, Bed
+        super().__init__()
+        self.items.append(Corridor())
+        self.items.append(Door(x=-1.38, y=2.0, z=3.99, ))
+        self.items.append(BedRoomWalls())
+        self.items.append(ClosetClosed(x=-1.4, y=2, z=4.4))
+        self.items.append(Bed(x=-1.5, y=2, z=6.))
+
+        self._anim = 0
+
+        self.collisions = [
+            Rect(200, 100, 10, 220),  # INNER RIGHT
+            Rect(250, -300, 10, 800),  # RIGHT
+            Rect(-200, 300, 10, 100),  # LEFT
+            Rect(-250, 300, 10, 400),
+            Rect(-250, 400, 110, 80),  # CLOSET
+            Rect(-250, 700, 300, 10),
+            Rect(0, 400, 10, 400),
+            Rect(-200, 300, 400, 10),  # BACK
+            Rect(-200, 400, 80, 10),  # FRONT
+            Rect(-80, 400, 300, 10),  # FRONT
+        ]
+
+        self.load_static_surfaces(self.caster)
+
+    def update(self, surface: Surface):
+        super().update(surface)
+        from scripts.game import GAME
+        from scripts.furniture import Door, Corridor, BedRoomWalls, ClosetOpened, Bed, Eyes
+        self._anim += DISPLAY.delta_time
+        if self._anim > 400:
+            if GAME.VIGNETTE < 7.5:
+                GAME.VIGNETTE += DISPLAY.delta_time * 3
+        elif self._anim >= 300:
+            if GAME.VIGNETTE > 1.5:
+                GAME.VIGNETTE -= DISPLAY.delta_time * 3
+            else:
+                GAME.VIGNETTE = 1.5
+                GAME.TEXT = Text(
+                    "Close your eyes. The night has only just begun.",
+                    color=(255, 250, 250), sound="mum_text.wav", fade_out=4.,
+                    event=(lambda: GAME.__setattr__("CURRENT_ROOM", ...))
+                )
+                if self._anim > 305:
+                    self._anim = 400
+        elif self._anim >= 200:
+            if self._anim > 205:
+                GAME.VIGNETTE += DISPLAY.delta_time * 3
+                if GAME.VIGNETTE > 7.5:
+                    self._anim = 300
+                    self.items.append(Eyes(x=-1.65, y=3., z=4.7))
+                    self.caster.clear_surfaces()
+                    self.load_static_surfaces(self.caster)
+        elif self._anim >= 100:
+            if GAME.VIGNETTE > 1.5:
+                GAME.VIGNETTE -= DISPLAY.delta_time * 3
+            else:
+                GAME.VIGNETTE = 1.5
+            if self._anim > 103:
+                GAME.TEXT = Text(
+                    "Aren't you scared of the monster in the closet ?",
+                    color=(255, 250, 250), sound="mum_text.wav", fade_out=2.
+                )
+                self._anim = 200
+        elif self._anim > 2.0:
+            GAME.VIGNETTE += DISPLAY.delta_time * 3
+            if GAME.VIGNETTE > 7.5:
+                self.items: list = []
+                self.items.append(Corridor())
+                self.items.append(Door(x=-1.38, y=2.0, z=3.99, ))
+                self.items.append(BedRoomWalls())
+                self.items.append(Bed(x=-1.5, y=2, z=6.))
+                self.items.append(ClosetOpened(x=-1.4, y=2, z=4.4))
+                self.caster.clear_surfaces()
+                self.load_static_surfaces(self.caster)
+                self._anim = 100

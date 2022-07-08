@@ -102,6 +102,7 @@ class TV(Furniture):
                                  lambda: PLAYER.__setattr__("movements", True),
                                  color=(15, 0, 0),
                                  sound="mum_text.wav")
+                GAME.VIGNETTE = 1.5
                 self.end_game = True
         return [
             (self.mini_game.screen,
@@ -343,19 +344,19 @@ class BedRoomWalls(Furniture):
              self.x, self.y + 5., self.z+4.,
              self.x-2.5, self.y + 5., self.z+4.,),
 
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # LEFT
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png")),  # LEFT
              self.x - 2.5, self.y + 5.1, self.z + 4.,
              self.x - 2.5, self.y + 1.9, self.z + 7.),
 
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # RIGHT
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png")),  # RIGHT
              self.x, self.y + 5.1, self.z + 7.,
              self.x, self.y + 1.9, self.z + 4.01),
 
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # BACK
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png")),  # BACK
              self.x - 2.5, self.y + 5.1, self.z + 7.,
              self.x, self.y + 1.9, self.z + 7.),
 
-            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 1, 1),  # FRONT
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png")),  # FRONT
              self.x - 4., self.y + 5.1, self.z + 4.,
              self.x - 2.0, self.y + 1.9, self.z + 4.),
         ]
@@ -394,6 +395,40 @@ class ClosetClosed(Furniture):
         return []
 
 
+class ClosetOpened(Furniture):
+    def __init__(self, width: float = 0.8, length: float = 0.4, height: float = 1.8, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.width = width
+        self.length = length
+        self.height = height
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "furniture", "closet", "open.png"),
+                self.x, self.y + self.height, self.z,
+                self.x - self.width, self.y, self.z + self.length,),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width * 0.1, self.y + self.height, self.z + self.length * 0.1,
+             self.x - self.width * 0.3, self.y, self.z - self.length,),
+
+            (load_image("data", "textures", "furniture", "closet", "door.png"),
+             self.x - self.width * 0.06, self.y + self.height * 0.95, self.z + self.length * 0.1,
+             self.x + self.width * 0.05, self.y + self.height * 0.06, self.z + self.length * 0.9,),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width + self.width * 0.05, self.y + self.height, self.z + self.length - self.length * 0.05,
+             self.x - self.width - self.width * 0.2, self.y, self.z, - self.length * 0.1),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width * 0.3, self.y + self.height, self.z - self.length,
+             self.x - self.width - self.width * 0.2, self.y, self.z, - self.length * 0.1),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
+
+
 class Bed(Furniture):
     def __init__(self, width: float = 1.2, length: float = 1.6, height: float = 0.6, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -416,6 +451,23 @@ class Bed(Furniture):
             (load_image("data", "textures", "furniture", "bed", "bed_bottom.png"),  # left
              self.x, self.y + self.height, self.z,
              self.x, self.y, self.z - self.width),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
+
+
+class Eyes(Furniture):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (
+                load_image("data", "textures", "furniture", "eyes.png"),
+                self.x, self.y + 0.15, self.z,
+                self.x + 0.15, self.y, self.z - 0.15,
+            )
         ]
 
     def dynamic_surfaces(self) -> list[tuple]:
