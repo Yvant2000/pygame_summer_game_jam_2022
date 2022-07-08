@@ -53,7 +53,7 @@ class GAME:
         cls.CURRENT_ROOM.update(cls.SURFACE)
         vignette(cls.SURFACE, inner_radius=cls.SURFACE.get_width()/6, strength=2)
         cls.display_text()
-        cls.draw_collisions()
+        # cls.draw_collisions()
         DISPLAY.display(cls.SURFACE)
 
         if PLAYER.movements:
@@ -103,12 +103,12 @@ class GAME:
 
     @classmethod
     def performance_adjustment(cls):
-        if DISPLAY.fps < 30:
+        if DISPLAY.fps < 40:
             cls.SCREEN_SIZE_MULTIPLIER *= 0.99
             cls.SCREEN_SIZE_MULTIPLIER = max(cls.SCREEN_SIZE_MULTIPLIER, 0.1)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,
                                    DISPLAY.size[1] * cls.SCREEN_SIZE_MULTIPLIER))
-        elif DISPLAY.fps > 40:
+        elif DISPLAY.fps > 50:
             cls.SCREEN_SIZE_MULTIPLIER *= 1.005
             cls.SCREEN_SIZE_MULTIPLIER = min(cls.SCREEN_SIZE_MULTIPLIER, 1.)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,

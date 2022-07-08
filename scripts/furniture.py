@@ -362,3 +362,61 @@ class BedRoomWalls(Furniture):
 
     def dynamic_surfaces(self) -> list[tuple]:
         return []
+
+
+class ClosetClosed(Furniture):
+    def __init__(self, width: float = 0.8, length: float = 0.4, height: float = 1.8, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.width = width
+        self.length = length
+        self.height = height
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "furniture", "closet", "closet.png"),
+                self.x, self.y + self.height, self.z,
+                self.x - self.width, self.y, self.z + self.length,),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width * 0.1, self.y + self.height, self.z + self.length * 0.1,
+             self.x - self.width * 0.3, self.y, self.z - self.length,),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width + self.width * 0.05, self.y + self.height, self.z + self.length - self.length * 0.05,
+             self.x - self.width - self.width * 0.2, self.y, self.z, - self.length * 0.1),
+
+            (load_image("data", "textures", "furniture", "closet", "closet_side.png"),
+             self.x - self.width * 0.3, self.y + self.height, self.z - self.length,
+             self.x - self.width - self.width * 0.2, self.y, self.z, - self.length * 0.1),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
+
+
+class Bed(Furniture):
+    def __init__(self, width: float = 1.2, length: float = 1.6, height: float = 0.6, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.width = width
+        self.length = length
+        self.height = height
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "furniture", "bed", "bed_side.png"),  # back
+             self.x, self.y + self.height, self.z,
+             self.x + self.length, self.y, self.z),
+            (load_image("data", "textures", "furniture", "bed", "bed_side.png"),  # front
+             self.x, self.y + self.height, self.z - self.width,
+             self.x + self.length, self.y, self.z - self.width),
+            (load_image("data", "textures", "furniture", "bed", "bed_top.png"),  # top
+             self.x, self.y + self.height, self.z,
+             self.x + self.length, self.y + self.height, self.z - self.width,
+             self.x, self.y + self.height, self.z - self.width),
+            (load_image("data", "textures", "furniture", "bed", "bed_bottom.png"),  # left
+             self.x, self.y + self.height, self.z,
+             self.x, self.y, self.z - self.width),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []

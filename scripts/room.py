@@ -4,7 +4,6 @@ from pygame import Surface, Rect
 
 from scripts.player import PLAYER
 from scripts.furniture import Furniture
-from scripts.display import load_image, repeat_texture
 
 from nostalgiaeraycasting import RayCaster
 
@@ -55,6 +54,7 @@ class LivingRoom(Room):
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
         self.items.append(Door(x=1.8, y=2.0, z=3.99,))
+
         # self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
         self.collisions = [
@@ -77,7 +77,7 @@ class LivingRoom(Room):
 
 class Corridor(Room):
     def __init__(self):
-        from scripts.furniture import LivingRoomWalls, Door, Stairs, Corridor, BedRoomWalls
+        from scripts.furniture import LivingRoomWalls, Door, Stairs, Corridor, BedRoomWalls, ClosetClosed
         super().__init__()
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
@@ -89,6 +89,7 @@ class Corridor(Room):
         self.items.append(Door(x=-0.5, y=2.0, z=3.01))
         self.items.append(Door(x=-1.38, y=2.0, z=3.4, axis_x=False))
         self.items.append(BedRoomWalls())
+        self.items.append(ClosetClosed(x=-1.4, y=2, z=4.4))
 
         self.collisions = [
             Rect(200, 100, 10, 220),  # INNER RIGHT
@@ -113,7 +114,7 @@ class Corridor(Room):
 
 class BedRoom(Room):
     def __init__(self):
-        from scripts.furniture import Door, Stairs, Corridor, BedRoomWalls
+        from scripts.furniture import Door, Stairs, Corridor, BedRoomWalls, ClosetClosed, Bed
         super().__init__()
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
@@ -122,11 +123,17 @@ class BedRoom(Room):
         self.items.append(Door(x=-0.5, y=2.0, z=3.01))
         self.items.append(Door(x=-1.38, y=2.0, z=3.4, axis_x=False))
         self.items.append(BedRoomWalls())
+        self.items.append(ClosetClosed(x=-1.4, y=2, z=4.4))
+        self.items.append(Bed(x=-1.5, y=2, z=6.))
 
         self.collisions = [
             Rect(200, 100, 10, 220),  # INNER RIGHT
             Rect(250, -300, 10, 800),  # RIGHT
             Rect(-200, 300, 10, 100),  # LEFT
+            Rect(-250, 300, 10, 400),
+            Rect(-250, 400, 110, 80),  # CLOSET
+            Rect(-250, 700, 300, 10),
+            Rect(0, 400, 10, 400),
             Rect(-200, 300, 400, 10),  # BACK
             Rect(-200, 400, 80, 10),  # FRONT
             Rect(-80, 400, 300, 10),  # FRONT
