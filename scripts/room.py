@@ -40,7 +40,7 @@ class Room(ABC):
 
 class LivingRoom(Room):
     def __init__(self):
-        from scripts.furniture import Couch, TV, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs
+        from scripts.furniture import Couch, TV, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, Corridor
         super().__init__()
         self.items.append(TV(-0.23, 1., 0.3))
         self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
@@ -53,6 +53,7 @@ class LivingRoom(Room):
         self.items.append(Window(x=-1., y=0.8, z=-2.99))
         self.items.append(Window(x=1., y=0.8, z=-2.99))
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
+        self.items.append(Corridor())
         # self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
         self.collisions = [
@@ -60,7 +61,7 @@ class LivingRoom(Room):
             Rect(-200, 100, 400, 10),  # FRONT
             Rect(-200, -300, 450, 10),  # BACK
             Rect(-200, -300, 10, 350),  # LEFT
-            Rect(200, 100, 10, 300),  # INNER RIGHT
+            Rect(200, 100, 10, 220),  # INNER RIGHT
             Rect(250, -300, 10, 800),  # RIGHT
             Rect(-80, -230, 150, 80),  # COUCH
         ]

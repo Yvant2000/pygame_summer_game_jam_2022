@@ -311,7 +311,7 @@ class Stairs(Furniture):
     def dynamic_surfaces(self) -> list[tuple]:
         from scripts.player import PLAYER
         if self.z < PLAYER.z < self.z + self.length and self.x < PLAYER.x < self.x + self.width:
-            PLAYER.y = self.height * (PLAYER.z - self.z) / self.length
+            PLAYER.y = self.height * ((PLAYER.z - self.z) / self.length)
         return []
 
 
@@ -320,7 +320,21 @@ class Corridor(Furniture):
         super().__init__(*args, **kwargs)
 
     def static_surfaces(self) -> list[tuple]:
-        pass
+        return [
+            (load_image("data", "textures", "wall", "corridor_wall.png"),
+             self.x + 1.8, self.y + 5.5, self.z + 1.0,
+             self.x + 1.8, self.y, self.z + 3.0,),
+            (load_image("data", "textures", "wall", "corridor_wall.png"),
+             self.x + 2.5, self.y + 5.5, self.z + 1.0,
+             self.x + 2.5, self.y, self.z + 5.0,),
+            (repeat_texture(load_image("data", "textures", "wall", "light_wood.png"), 2),
+             self.x - 2, self.y + 2., self.z + 4.,
+             self.x + 2.5, self.y + 1.99, self.z + 3.0,
+             self.x - 2, self.y + 1.99, self.z + 3.0,),
+        ]
 
     def dynamic_surfaces(self) -> list[tuple]:
-        pass
+        return []
+
+
+
