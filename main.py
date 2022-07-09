@@ -53,8 +53,8 @@ def main(debug: bool = False) -> None:
     while events():
         DISPLAY.update()
         GAME.update()
-        if debug:
-            debug_print()
+        # if debug:
+        #     debug_print()
 
 
 if __name__ == '__main__':

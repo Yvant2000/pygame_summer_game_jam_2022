@@ -1,8 +1,10 @@
 from abc import ABC, abstractmethod
 from os.path import join as join_path
+from math import cos
 
 from pygame import Surface, Rect
 from pygame.mixer import Sound
+from pygame import mouse
 
 from scripts.player import PLAYER
 from scripts.furniture import Furniture
@@ -43,7 +45,7 @@ class Room(ABC):
 
 class LivingRoom(Room):
     def __init__(self):
-        from scripts.furniture import Couch, TV, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, Corridor
+        from scripts.furniture import Couch, TV, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, Corridor, Frame
         super().__init__()
         self.items.append(TV(-0.23, 1., 0.3))
         self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
@@ -58,6 +60,7 @@ class LivingRoom(Room):
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
         self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
+        self.items.append(Frame(x=-1.99, y=1.7, z=-2))
 
         # self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
@@ -118,7 +121,7 @@ class Corridor(Room):
 
 class BedRoom(Room):
     def __init__(self):
-        from scripts.furniture import Door, Stairs, Corridor, BedRoomWalls, ClosetClosed, Bed
+        from scripts.furniture import Door, Stairs, Corridor, BedRoomWalls, ClosetClosed, Bed, Drawer
         super().__init__()
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
         self.items.append(Corridor())
@@ -129,6 +132,7 @@ class BedRoom(Room):
         self.items.append(BedRoomWalls())
         self.items.append(ClosetClosed(x=-1.4, y=2, z=4.4))
         self.items.append(Bed(x=-1.5, y=2, z=6.))
+        self.items.append(Drawer(width=1.2, x=-2., y=2, z=6.))
 
         self.collisions = [
             Rect(200, 100, 10, 220),  # INNER RIGHT
@@ -204,15 +208,16 @@ class BedRoomNightmare(Room):
                 GAME.VIGNETTE = 1.5
                 GAME.TEXT = Text(
                     "Close your eyes. The night has only just begun.",
-                    color=(255, 250, 250), sound="mum_text.wav", fade_out=4.,
+                    color=(255, 250, 250), fade_out=4.,
                     event=(lambda: (
                         GAME.set_room(LongCorridor()),
+                        mouse.get_rel(),
                         PLAYER.__setattr__("movements", True),
                         PLAYER.__setattr__("x", 0),
                         PLAYER.__setattr__("z", 0),
                         PLAYER.__setattr__("y", 0),
-                        PLAYER.__setattr__("rot_x", 90),
-                        PLAYER.__setattr__("rot_y", 0),
+                        PLAYER.__setattr__("rot_x", 0),
+                        PLAYER.__setattr__("rot_y", 90),
                     ))
                 )
                 if self._anim > 305:
@@ -234,7 +239,7 @@ class BedRoomNightmare(Room):
             if self._anim > 103:
                 GAME.TEXT = Text(
                     "Aren't you scared of the monster in the closet ?",
-                    color=(255, 250, 250), sound="mum_text.wav", fade_out=2.
+                    color=(255, 250, 250), fade_out=2.
                 )
                 self._anim = 200
         elif self._anim > 2.0:
@@ -256,8 +261,8 @@ class LongCorridor(Room):
         from scripts.furniture import LongCorridorWalls, Door, FloatingEye
         super().__init__()
         self.collisions = [
-            Rect(-50, -50, 10, 2400),
-            Rect(50, -50, 10, 2400),
+            Rect(-50, -50, 10, 3000),
+            Rect(50, -50, 10, 3000),
             Rect(-50, -50, 100, 10),
         ]
         self.items.append(LongCorridorWalls(x=-0.5, z=-0.5))
@@ -274,7 +279,7 @@ class LongCorridor(Room):
         self.items.append(FloatingEye(x=-0.65, y=0.9, z=17, texture=3))
 
         self.load_static_surfaces(self.caster)
-        self.rec_surf: Surface = Surface((200, 200))
+        self.rec_surf: Surface = Surface((150, 150))
         self.monster: bool = False
 
     def update(self, surface: Surface):
@@ -285,10 +290,10 @@ class LongCorridor(Room):
         self.caster.raycasting(
             self.rec_surf,
             PLAYER.x, PLAYER.height, 0,
-            0, PLAYER.rot_y,
+            0, 90,
             PLAYER.FOV, PLAYER.VIEW_DISTANCE,
         )
-        self.caster.add_surface(self.rec_surf.copy().convert_alpha(), -0.50, 3.1, z, 0.50, -0.1, z, rm=True)
+        self.caster.add_surface(self.rec_surf.copy().convert_alpha(), -1.30 + PLAYER.x, 3.1, z, 1.30 + PLAYER.x, -0.1, z, rm=True)
 
         super().update(surface)
         if not self.monster:
@@ -296,14 +301,83 @@ class LongCorridor(Room):
                 from scripts.furniture import Monster
                 self.items.append(Monster(speed=6, x=1.2, y=0, z=20, goal=(1.2, 0, 30)))
                 self.monster = True
-                Sound(join_path("data", "sounds", "breath.wav")).play()
+                Sound(join_path("data", "sounds", "door.mp3")).play()
 
         if PLAYER.z > 25:
             GAME.VIGNETTE += DISPLAY.delta_time * 3
             if GAME.VIGNETTE > 7.5:
-                ...
+                PLAYER.x = PLAYER.y = PLAYER.z = PLAYER.rot_x = 0
+                PLAYER.rot_y = 90
+                mouse.get_rel()
+                GAME.CURRENT_ROOM = TheEnd()  # TODO: change room
         else:
             if GAME.VIGNETTE > 1.5:
                 GAME.VIGNETTE -= DISPLAY.delta_time * 3
             else:
                 GAME.VIGNETTE = 1.5
+
+
+class TheEnd(Room):
+    def __init__(self):
+        super().__init__()
+        self.collisions = [
+            Rect(-200, -50, 10, 400),
+            Rect(200, -50, 10, 400),
+            Rect(-200, -50, 400, 10),
+            Rect(-200, 350, 400, 10),
+
+            Rect(-50, 300, 60, 50),
+        ]
+        from scripts.furniture import EndTV
+        self.items.append(EndTV(-0.5, 1, 3))
+        self.eyes: bool = False
+        self.game = self.items[0].mini_game  # type: ignore
+
+        self.load_static_surfaces(self.caster)
+        self._anim = 0
+
+    def update(self, surface: Surface):
+        from scripts.game import GAME
+        from scripts.furniture import FloatingEye, Monster
+        if self.game.ev != 3:
+            if GAME.VIGNETTE > 1.5:
+                GAME.VIGNETTE -= DISPLAY.delta_time * 3
+
+        if not self.game.pause and not self.eyes:
+            self.eyes = True
+            self.items.append(FloatingEye(x=-2.5, y=2.5, z=5, width=0.5, height=0.4))
+            self.items.append(FloatingEye(x=5, y=1.8, z=8, width=0.5, height=0.4, texture=2))
+            self.items.append(FloatingEye(x=1.0, y=1.2, z=-5, width=0.5, height=0.4, texture=3))
+
+            self.items.append(FloatingEye(x=7, y=0.4, z=1., width=0.5, height=0.4))
+            self.items.append(FloatingEye(x=-4, y=3., z=-1, width=0.5, height=0.4, texture=2))
+            self.items.append(FloatingEye(x=-4, y=1.5, z=6, width=0.5, height=0.4, texture=3))
+
+            self.items.append(FloatingEye(x=3, y=5., z=10., width=0.5, height=0.4))
+            self.items.append(FloatingEye(x=0.5, y=3., z=5, width=0.5, height=0.4, texture=2))
+            self.items.append(FloatingEye(x=-8, y=0.2, z=2, width=0.5, height=0.4, texture=3))
+
+            self.items.append(FloatingEye(x=6, y=1., z=4, width=0.5, height=0.4))
+            self.items.append(FloatingEye(x=-3, y=2., z=3, width=0.5, height=0.4, texture=2))
+            self.items.append(FloatingEye(x=4, y=1.6, z=4, width=0.5, height=0.4, texture=3))
+
+        if PLAYER.z > 2.35 and (-0.5 < PLAYER.x < -0.0):
+            PLAYER.z = 2.45
+            PLAYER.x = -0.2
+            PLAYER.step_sound0.set_volume(0)
+            PLAYER.step_sound1.set_volume(0)
+
+        if self.game.background_deca > 200 and self.game.ev == 0:
+            self.game.ev = 1
+            self.items.append(Monster(x=20, y=0, z=6, goal=(0, 0, 6), speed=4))
+            self.items.append(Monster(x=0, y=0, z=-50, goal=(0, 0, -2), speed=0.5))
+            print("Monster spawned")
+        if self.game.ev == 2:
+            self._anim += DISPLAY.delta_time
+            GAME.BG_COLOR = ((1 - cos(self._anim / 5)) * 25, 0, 0)
+        elif self.game.ev == 3:
+            GAME.VIGNETTE += DISPLAY.delta_time
+            if GAME.VIGNETTE > 10.:
+                GAME.STATE = GAME.STATE.TITLE_END
+                Sound(join_path("data", "sounds", "breath.wav")).play()
+        super().update(surface)

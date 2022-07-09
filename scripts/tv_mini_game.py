@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from math import sin, pi, cos
 from os.path import join as join_path
+from random import choice, randint
 
 from pygame import Surface, transform, mouse, Rect
 from pygame import K_a, K_d, K_SPACE, K_LEFT, K_RIGHT, K_UP, K_RETURN, K_e, K_w
@@ -13,21 +14,25 @@ from nostalgiaefilters import fish
 
 
 class TvGame:
-    def __init__(self):
+    def __init__(self, nightmare: bool = False):
         self.screen = Surface((256, 224)).convert_alpha()
         self.surface = Surface((256, 224)).convert_alpha()
-        self.background = load_image("data", "mini_game", "Room.png")
+        self.background = load_image("data", "mini_game", "Room_nightmare.png" if nightmare else "Room.png")
         self.pause_image: Surface = load_image("data", "mini_game", "pause.png")
         self.game_over_image: Surface = load_image("data", "mini_game", "game_over.png")
-        self.music = mixer.Sound(join_path("data", "mini_game", "sound", "Monster Killer.wav"))
+        self.music = mixer.Sound(join_path("data", "mini_game", "sound", "Monster Slayer.wav" if nightmare else "Monster Killer.wav"))
         self.music.set_volume(0.7)
         self.background_deca: int = 0
         self.entities: list[Entity] = [Knight(x=100, y=160)]
+        if nightmare:
+            self.entities[0].speed += 20
         self.ev: int = 0
-        self.pause: bool = not PLAYER.movements
+        self.pause: bool = nightmare or not PLAYER.movements
         self.enter_key: bool = True
         self.game_over: bool = False
         self._gam_over_anim: float = 5.
+        self.nightmare = nightmare
+        self._anim = 0
 
     def update(self) -> bool:
 
@@ -40,7 +45,10 @@ class TvGame:
             self.draw_game_over()
         else:
             self.update_entities()
-            self.events()
+            if self.nightmare:
+                self.nightmare_events()
+            else:
+                self.events()
 
         self.screen.fill((0, 0, 0, 0))
         fish(self.surface, self.screen, 0.2)
@@ -58,14 +66,46 @@ class TvGame:
 
     def draw_pause(self):
         self.surface.blit(self.pause_image, (0, 0))
-        if PLAYER.skip:
+        if PLAYER.skip and (not self.nightmare or PLAYER.z == 2.45):
             if not self.enter_key:
                 self.enter_key = True
-                self.music.play(-1, )
+                if not self.nightmare:
+                    self.music.play(-1, )
                 mixer.Sound(join_path("data", "mini_game", "sound", "blipSelect.wav")).play()
                 self.pause = False
         else:
             self.enter_key = False
+
+    def nightmare_events(self):
+        from scripts.game import GAME
+        from scripts.text import Text
+        if self.background_deca > 700 and self.ev < 2:
+            self.music.set_volume(0.4)
+            self.music.play(-1, fade_ms=4000)
+            self.ev = 2
+            self.entities.append(Cursy(x=1000, nightmare=True))
+            self.entities[1].goal = self.entities[0]  # type: ignore
+            GAME.TEXT = Text("Now, it's time to fight your fears.", )
+        if self.ev == 2:
+            self._anim += DISPLAY.delta_time
+            if self._anim > 3:
+                ent = choice((Zombie, Bat))(**(choice(({'x': self.background_deca - 100}, {'x': self.background_deca + 300, 'right': False}))))
+                ent.speed = randint(20, 40)
+                if ent.life == 1:
+                    ent.y = randint(0, 140)
+                self.entities.append(ent)
+                self._anim = 0
+                temp = []
+                for ent in self.entities:
+                    if ent.life > 3 or ((not ent.x < self.background_deca - 200) and (not ent.x > self.background_deca + 500)):
+                        temp.append(ent)
+                self.entities = temp
+
+            if self.entities[1].life < 3:
+                self.music.stop()
+                self.entities = [self.entities[0], self.entities[1]]
+                GAME.TEXT = Text("You faced your fear. Now go to sleep peacefully. Tomorrow is another day")
+                self.ev += 1
 
     def events(self):
         if self.background_deca > 102 and self.ev == 0:
@@ -75,29 +115,29 @@ class TvGame:
             self.entities.append(Zombie(x=420, speed=18, right=False))
             self.ev += 1
 
-        if self.background_deca > 150 and self.ev == 1:
+        if self.background_deca > 200 and self.ev == 1:
             self.ev += 1
-            self.entities.append(Zombie(x=140, speed=25))
-            self.entities.append(Zombie(x=420, speed=20, right=False))
+            self.entities.append(Zombie(x=190, speed=25))
+            self.entities.append(Zombie(x=470, speed=20, right=False))
 
-        if self.background_deca > 200 and self.ev == 2:
+        if self.background_deca > 300 and self.ev == 2:
             self.ev += 1
-            self.entities.append(Bat(x=500, y=140, speed=50, right=False))
-            self.entities.append(Zombie(x=180, speed=30))
-            self.entities.append(Bat(x=520, y=60, speed=25))
+            self.entities.append(Bat(x=600, y=140, speed=50, right=False))
+            self.entities.append(Zombie(x=280, speed=30))
+            self.entities.append(Bat(x=620, y=60, speed=25))
 
-        if self.background_deca > 250 and self.ev == 3:
+        if self.background_deca > 400 and self.ev == 3:
             self.ev += 1
-            self.entities.append(Bat(x=550, y=50, speed=32, right=False))
-            self.entities.append(Bat(x=650, y=85, speed=28, right=False))
-            self.entities.append(Bat(x=700, y=120, speed=38, right=False))
-            self.entities.append(Bat(x=230, y=140, speed=32))
-            self.entities.append(Zombie(x=220, speed=28))
-            self.entities.append(Zombie(x=200, speed=25))
-            self.entities.append(Zombie(x=600, speed=40, right=False))
+            self.entities.append(Bat(x=700, y=50, speed=32, right=False))
+            self.entities.append(Bat(x=800, y=85, speed=28, right=False))
+            self.entities.append(Bat(x=850, y=120, speed=38, right=False))
+            self.entities.append(Bat(x=380, y=140, speed=32))
+            self.entities.append(Zombie(x=370, speed=28))
+            self.entities.append(Zombie(x=350, speed=25))
+            self.entities.append(Zombie(x=750, speed=40, right=False))
 
-        if self.background_deca > 450 and self.ev == 4:
-            self.entities = [self.entities[0], Cursy(x=750)]
+        if self.background_deca > 600 and self.ev == 4:
+            self.entities = [self.entities[0], Cursy(x=900)]
             self.entities[1].goal = self.entities[0]
             self.ev += 1
 
@@ -111,7 +151,7 @@ class TvGame:
 
     def update_entities(self):
         knight: Knight = self.entities[0]  # type: ignore
-        knight_collision: Rect = Rect(knight.x + knight.base.get_width() // 4, knight.y + knight.base.get_height() // 4,
+        knight_collision: Rect = Rect(knight.x + knight.base.get_width() // (4 if knight.right else 2), knight.y + knight.base.get_height() // 4,
                                       knight.base.get_width() // 4, knight.base.get_height() // 4)
         for entity in self.entities:
             entity.update()
@@ -248,18 +288,21 @@ class Cursy(Entity):
         ATTACK = auto()
         RUNNING = auto()
         ANGRY = auto()
+        DYING = auto()
 
-    def __init__(self, x: int = 0):
-        super().__init__(x, 130, speed=6, right=False)
+    def __init__(self, x: int = 0, nightmare=False,):
+        super().__init__(x, 130, speed=12 if nightmare else 6, right=False)
         self.image = load_image("data", "mini_game", "Cursy", "Curs-base.png")
         self.wait = load_image("data", "mini_game", "Cursy", "Curs-wait.png")
         self.walk = load_image("data", "mini_game", "Cursy", "Curs-walk.png")
         self.pre_attack = load_image("data", "mini_game", "Cursy", "Curs-cut.png")
         self.attack_sprite = load_image("data", "mini_game", "Cursy", "Curs-cutted.png")
         self.hurt = load_image("data", "mini_game", "Cursy", "Curs-Hit.png")
+        self.nightmare_sprite = load_image("data", "mini_game", "Nightmare Cursy", "nightmare.png")
 
         self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "ChitHurt.wav"))
         self.attack_sound = mixer.Sound(join_path("data", "mini_game", "sound", "Cattack.wav"))
+        self.die_sound = mixer.Sound(join_path("data", "mini_game", "sound", "Cdie.wav"))
 
         self.damage_anim: float = 0.
 
@@ -267,6 +310,8 @@ class Cursy(Entity):
         self._anim: float = 0
         self.goal: Knight | None = None
         self.attacks: int = 0
+        self.nightmare = nightmare
+        self.life = 20
 
     def update(self):
         self._anim += DISPLAY.delta_time
@@ -276,9 +321,13 @@ class Cursy(Entity):
             self.damage_anim -= DISPLAY.delta_time
             return
 
+        if self.life < 3:
+            self.state = Cursy.STATE.DYING
+            self.y += DISPLAY.delta_time * 10
+
         match self.state:
             case Cursy.STATE.WAIT:
-                if self.attacks > 3:
+                if self.attacks > 3 and not self.nightmare:
                     self.state = Cursy.STATE.ANGRY
                     self._anim = 0.
                 elif self.goal is not None:
@@ -291,12 +340,12 @@ class Cursy(Entity):
                     self.state = Cursy.STATE.PRE_ATTACK
                     self._anim = 0.
             case Cursy.STATE.PRE_ATTACK:
-                if self._anim > 0.6:
+                if self._anim > (0.8 if self. nightmare else 0.6):
                     self.state = Cursy.STATE.ATTACK
-                    self.x += 25 * ((-1) ** (not self.right))
+                    self.x += 30 * ((-1) ** (not self.right))
                     self.attack_sound.play()
             case Cursy.STATE.ATTACK:
-                if self._anim > 1.2:
+                if self._anim > (1.6 if self. nightmare else 1.2):
                     self.state = Cursy.STATE.WAIT
                     self.attacks += 1
 
@@ -311,6 +360,8 @@ class Cursy(Entity):
 
     def draw(self) -> Surface:
         surf = self.get_surf()
+        if self.nightmare and not randint(0, 30):
+            surf = self.nightmare_sprite
         if self.right:
             return transform.flip(surf, True, False)
         return surf
@@ -332,12 +383,23 @@ class Cursy(Entity):
                 return self.attack_sprite if anim % 20 < 10 else self.walk
             case Cursy.STATE.ANGRY:
                 return self.wait
+            case Cursy.STATE.DYING:
+                return self.hurt
 
     def damage(self, _=False):
         if self.damage_anim > 0:
             return
-        self.damage_anim = 0.2
-        self.hurt_sound.play()
+        if self.nightmare:
+            self.life -= 1
+            if self.state != Cursy.STATE.PRE_ATTACK:
+                self.x += 10 * ((-1) ** self.right)
+            self.damage_anim = 0.5
+        else:
+            self.damage_anim = 0.2
+        if self.life >= 3:
+            self.hurt_sound.play()
+        else:
+            self.die_sound.play()
 
 
 class Knight(Entity):
@@ -385,6 +447,9 @@ class Knight(Entity):
                 self.y = 160
         else:
             self._jump = 0.
+
+        if self.damage_anim > 0:
+            return
 
         match self.state:
             case Knight.STATE.PRE_ATTACK:

@@ -11,7 +11,7 @@ from scripts.display import DISPLAY
 class Text:
     def __init__(self, text: str, event: callable = None, font: str = "Pixel.ttf",
                  color: tuple[int, int, int] = (255, 255, 255), fade_out: float = 5.0,
-                 sound: str = None):
+                 sound: str = "mum_text.wav"):
         self.text: str = text
         self.event: callable = event
         self.font: Font = Font(join_path("data", "fonts", font), 50)

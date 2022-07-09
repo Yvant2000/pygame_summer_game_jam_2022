@@ -4,6 +4,7 @@ from math import sin, cos, radians, pi
 from random import randint
 
 from pygame import Surface
+from pygame import mouse
 
 from scripts.display import load_image, repeat_texture, DISPLAY
 from scripts.tv_mini_game import TvGame
@@ -101,7 +102,10 @@ class TV(Furniture):
                 from scripts.game import GAME
 
                 GAME.TEXT = Text("It's time to go to bed.",
-                                 lambda: PLAYER.__setattr__("movements", True),
+                                 lambda: (
+                                     mouse.get_rel(),
+                                     PLAYER.__setattr__("movements", True)
+                                 ),
                                  color=(15, 0, 0),
                                  sound="mum_text.wav")
                 GAME.VIGNETTE = 1.5
@@ -586,6 +590,69 @@ class Monster(Furniture):
             return []
         return [
             (self.texture,
-             self.x - self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y + self.height, self.z - self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),
-             self.x + self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y, self.z + self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),)
+             self.x + self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y + self.height, self.z - self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),
+             self.x - self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y, self.z + self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),)
         ]
+
+
+class EndTV(Furniture):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.size: float = 0.5
+        self.mini_game: TvGame = TvGame(True)
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "furniture", "tv", "tv0.png"),
+             self.x, self.y + self.size, self.z,
+             self.x + self.size, self.y, self.z),
+            (load_image("data", "textures", "furniture", "tv", "tv1.png"),
+             self.x, self.y + self.size, self.z + self.size,
+             self.x, self.y, self.z),
+            (load_image("data", "textures", "furniture", "tv", "tv1.png"),
+             self.x + self.size, self.y + self.size, self.z + self.size,
+             self.x + self.size, self.y, self.z),
+            (load_image("data", "textures", "furniture", "tv", "tv1.png"),
+             self.x, self.y + self.size, self.z + self.size,
+             self.x + self.size, self.y + self.size, self.z,
+             self.x, self.y + self.size, self.z),
+            (load_image("data", "textures", "furniture", "tv", "tv2.png"),
+             self.x, self.y + 2 * self.size, self.z + self.size / 2,
+             self.x + self.size, self.y + self.size, self.z + self.size / 2),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        if self.mini_game.update():
+            from scripts.player import PLAYER
+            from scripts.game import GAME
+            # TODO
+            # GAME.TEXT = Text("It's time to go to bed.",
+            #                  lambda: (
+            #                      mouse.get_rel(),
+            #                      PLAYER.__setattr__("movements", True)
+            #                  ),
+            #                  color=(15, 0, 0),
+            #                  sound="mum_text.wav")
+            # GAME.VIGNETTE = 1.5
+        return [
+            (self.mini_game.screen,
+             self.x-0.01, self.y + self.size, self.z-0.001,
+             self.x + self.size-0.1, self.y, self.z-0.001),
+        ]
+
+
+class Frame(Furniture):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.height: float = 0.4
+        self.width = 0.2
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "furniture", "frame.png"),
+             self.x, self.y + self.height, self.z,
+             self.x, self.y, self.z + self.width),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []

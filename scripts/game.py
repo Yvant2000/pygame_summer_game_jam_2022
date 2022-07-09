@@ -9,7 +9,7 @@ from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
 from scripts.room import Room, LivingRoom, LongCorridor
 from scripts.text import Text
-
+from scripts.end_screen import END_SCREEN
 
 from nostalgiaefilters import vignette
 
@@ -18,6 +18,7 @@ class GAME_STATE(Enum):
     SPLASH_SCREEN = auto()
     GAME = auto()
     PAUSE = auto()
+    TITLE_END = auto()
 
 
 class GAME:
@@ -25,11 +26,11 @@ class GAME:
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
-    # CURRENT_ROOM: Room = LivingRoom()
-    CURRENT_ROOM: Room = LongCorridor()
+    CURRENT_ROOM: Room = LivingRoom()  # TODO: set to LivingRoom on release
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
     VIGNETTE: float = 0
+    BG_COLOR: tuple[int, int, int] = (0, 0, 0)
 
     @classmethod
     def update(cls):
@@ -47,6 +48,9 @@ class GAME:
                 if PAUSE_MENU.update():
                     cls.STATE = GAME_STATE.GAME
 
+            case GAME_STATE.TITLE_END:
+                END_SCREEN.blit()
+
     @classmethod
     def set_room(cls, room: Room):
         cls.CURRENT_ROOM = room
@@ -55,7 +59,7 @@ class GAME:
     def run_game(cls):
 
         cls.performance_adjustment()
-        cls.SURFACE.fill((0, 0, 0))
+        cls.SURFACE.fill(cls.BG_COLOR)
         cls.CURRENT_ROOM.update(cls.SURFACE)
         vignette(cls.SURFACE, inner_radius=-cls.SURFACE.get_width()/6, strength=cls.VIGNETTE)
         cls.display_text()

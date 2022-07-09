@@ -15,7 +15,7 @@ d_pi: float = pi / 2
 class Player:
     def __init__(self):
         self._keys: Sequence = []
-        self.movements: bool = True  # TODO: set this to False
+        self.movements: bool = False  # TODO: set this to False
 
         self.x: float = -0.01
         self.y: float = 0.
