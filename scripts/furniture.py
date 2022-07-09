@@ -656,3 +656,44 @@ class Frame(Furniture):
 
     def dynamic_surfaces(self) -> list[tuple]:
         return []
+
+
+class InfiniteRoomWalls(Furniture):
+    def __init__(self, mode: int = 0, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mode = mode
+        self.width = 2.0
+        self.height = 2.0
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
+                self.x, self.y + self.height, self.z,
+                self.x + self.width, self.y, self.z),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
+                self.x + self.width, self.y + self.height, self.z,
+                self.x + self.width, self.y, self.z + self.width),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
+                self.x + self.width, self.y + self.height, self.z + self.width,
+                self.x, self.y, self.z + self.width),
+
+            (repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2),
+                self.x, self.y + self.height, self.z + self.width,
+                self.x, self.y, self.z),
+
+            (repeat_texture(load_image("data", "textures", "wall", "woodfine.png"), 2, 2),
+             self.x-0.1, self.y, self.z-0.1,
+             self.x + self.width + 0.1, self.y, self.z + self.width + 0.1,
+             self.x-0.1, self.y, self.z + self.width + 0.1),
+
+            (repeat_texture(load_image("data", "textures", "wall", "ceiling.png"), 2, 2),
+             self.x - 0.1, self.y + 2, self.z - 0.1,
+             self.x + self.width + 0.1, self.y + 1.99, self.z + self.width + 0.1,
+             self.x - 0.1, self.y + 1.99, self.z + self.width + 0.1),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
+

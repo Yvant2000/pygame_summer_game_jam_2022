@@ -381,3 +381,24 @@ class TheEnd(Room):
                 GAME.STATE = GAME.STATE.TITLE_END
                 Sound(join_path("data", "sounds", "breath.wav")).play()
         super().update(surface)
+
+
+class InfiniteRoom(Room):
+    def __init__(self):
+        from scripts.furniture import InfiniteRoomWalls
+        super().__init__()
+
+        self.items.append(InfiniteRoomWalls(x=-0.5, z=-0.5))
+
+        self.collisions = [
+            Rect(-50, -50, 200, 10),
+            Rect(-50, -50, 10, 200),
+            Rect(-50, 150, 200, 10),
+            Rect(-50, 150, 10, 200),
+
+            Rect(50, -50, 10, 200),
+        ]
+        self.load_static_surfaces(self.caster)
+
+    def update(self, surface: Surface):
+        super().update(surface)
