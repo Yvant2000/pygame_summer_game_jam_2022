@@ -24,7 +24,7 @@ class TvGame:
         self.background_deca: int = 0
         self.entities: list[Entity] = [Knight(x=100, y=160)]
         self.ev: int = 0
-        self.pause: bool = True
+        self.pause: bool = not PLAYER.movements
         self.enter_key: bool = True
         self.game_over: bool = False
         self._gam_over_anim: float = 5.
@@ -287,7 +287,7 @@ class Cursy(Entity):
             case Cursy.STATE.WALKING:
                 self.right = self.goal.x > self.x
                 self.x += self.speed * DISPLAY.delta_time * ((-1) ** (not self.right))
-                if abs(self.goal.x - self.x) < 35:
+                if abs(self.goal.x - self.x) < (70 if self.right else 35):
                     self.state = Cursy.STATE.PRE_ATTACK
                     self._anim = 0.
             case Cursy.STATE.PRE_ATTACK:

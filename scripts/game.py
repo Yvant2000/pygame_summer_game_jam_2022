@@ -7,7 +7,7 @@ from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
 from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
-from scripts.room import Room, LivingRoom
+from scripts.room import Room, LivingRoom, LongCorridor
 from scripts.text import Text
 
 
@@ -25,7 +25,8 @@ class GAME:
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
-    CURRENT_ROOM: Room = LivingRoom()
+    # CURRENT_ROOM: Room = LivingRoom()
+    CURRENT_ROOM: Room = LongCorridor()
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
     VIGNETTE: float = 0
@@ -45,6 +46,10 @@ class GAME:
             case GAME_STATE.PAUSE:
                 if PAUSE_MENU.update():
                     cls.STATE = GAME_STATE.GAME
+
+    @classmethod
+    def set_room(cls, room: Room):
+        cls.CURRENT_ROOM = room
 
     @classmethod
     def run_game(cls):
@@ -104,7 +109,7 @@ class GAME:
 
     @classmethod
     def performance_adjustment(cls):
-        if DISPLAY.fps < 40:
+        if DISPLAY.fps < 35:
             cls.SCREEN_SIZE_MULTIPLIER *= 0.99
             cls.SCREEN_SIZE_MULTIPLIER = max(cls.SCREEN_SIZE_MULTIPLIER, 0.1)
             cls.SURFACE = Surface((DISPLAY.size[0] * cls.SCREEN_SIZE_MULTIPLIER,

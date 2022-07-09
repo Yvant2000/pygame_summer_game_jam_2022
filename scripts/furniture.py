@@ -1,9 +1,11 @@
+from typing import Literal
 from abc import ABC, abstractmethod
 from math import sin, cos, radians, pi
+from random import randint
 
 from pygame import Surface
 
-from scripts.display import load_image, repeat_texture
+from scripts.display import load_image, repeat_texture, DISPLAY
 from scripts.tv_mini_game import TvGame
 from scripts.text import Text
 
@@ -472,3 +474,118 @@ class Eyes(Furniture):
 
     def dynamic_surfaces(self) -> list[tuple]:
         return []
+
+
+class LongCorridorWalls(Furniture):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def static_surfaces(self) -> list[tuple]:
+        return [
+            (load_image("data", "textures", "wall", "corridor_wall_front.png"),
+             self.x, self.y + 3, self.z + 6,
+             self.x, self.y, self.z),
+            (repeat_texture(load_image("data", "textures", "wall", "corridor_wall.png"), 2),
+             self.x + 1, self.y + 3, self.z + 6,
+             self.x + 1, self.y, self.z),
+            (load_image("data", "textures", "wall", "corridor_wall_front.png"),
+             self.x + 1, self.y + 3, self.z + 12,
+             self.x + 1, self.y, self.z + 6),
+            (repeat_texture(load_image("data", "textures", "wall", "corridor_wall.png"), 2),
+             self.x, self.y + 3, self.z + 12,
+             self.x, self.y, self.z + 6),
+
+            (repeat_texture(load_image("data", "textures", "wall", "light_wood.png"), 4),
+             self.x - 0.1, self.y, self.z,
+             self.x + 1.1, self.y, self.z + 12,
+             self.x + 1.1, self.y, self.z),
+
+            (repeat_texture(load_image("data", "textures", "wall", "ceiling.png"), 4),
+             self.x - 0.1, self.y + 3, self.z,
+             self.x + 1.1, self.y + 3, self.z + 12,
+             self.x + 1.1, self.y + 3, self.z),
+        ]
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        return []
+
+
+class FloatingEye(Furniture):
+    def __init__(self, texture: Literal[1, 2, 3] = 1, width: float = 0.2, height: float = 0.15, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.eye0: Surface = load_image("data", "textures", "furniture", "eyes", f"oeil{texture}0.png")
+        self.eye1: Surface = load_image("data", "textures", "furniture", "eyes", f"oeil{texture}1.png")
+        self.eye2: Surface = load_image("data", "textures", "furniture", "eyes", f"oeil{texture}2.png")
+        self.width = width
+        self.height = height
+        self._anim: float = 0.
+        self.blink: float = 0
+
+    def static_surfaces(self) -> list[tuple]:
+        return []
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        from scripts.player import PLAYER
+
+        if not randint(0, 200):
+            self.blink = 6.
+
+        if self.blink > 0:
+            self.blink -= DISPLAY.delta_time * 6
+        else:
+            self.blink = 0
+
+        temp = round(self.blink)
+
+        surf = self.eye0
+        match temp:
+            case 3 | 1:
+                surf = self.eye1
+            case 2:
+                surf = self.eye2
+            case _: ...
+
+        return [
+            (surf,
+             self.x - self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2),
+             self.y + self.height / 2 * sin(radians(PLAYER.rot_x) + pi/2),
+             self.z - self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),
+
+             self.x + self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2),
+             self.y - self.height / 2 * sin(radians(PLAYER.rot_x) + pi/2),
+             self.z + self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),)
+        ]
+
+
+class Monster(Furniture):
+    def __init__(self, speed: float = 1., goal: tuple[float, float, float] | None = None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.goal = goal
+        self.width = 1.0
+        self.height = 1.9
+        self.texture = load_image("data", "textures", "furniture", "monstre.png")
+        self.speed = speed
+
+    def static_surfaces(self) -> list[tuple]:
+        return []
+
+    def dynamic_surfaces(self) -> list[tuple]:
+        from scripts.player import PLAYER
+        d = self.speed * DISPLAY.delta_time
+        test: bool = True
+        if abs(self.x - self.goal[0]) > d:
+            test = False
+            self.x += d * ((-1) ** (self.goal[0] < self.x))
+        if abs(self.y - self.goal[1]) > d:
+            test = False
+            self.y += d * ((-1) ** (self.goal[1] < self.y))
+        if abs(self.z - self.goal[2]) > d:
+            test = False
+            self.z += d * ((-1) ** (self.goal[2] < self.z))
+        if test:
+            return []
+        return [
+            (self.texture,
+             self.x - self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y + self.height, self.z - self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),
+             self.x + self.width / 2 * cos(radians(PLAYER.rot_y) + pi/2), self.y, self.z + self.width / 2 * sin(radians(PLAYER.rot_y) + pi/2),)
+        ]
