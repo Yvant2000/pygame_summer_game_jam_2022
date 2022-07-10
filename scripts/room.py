@@ -8,7 +8,7 @@ from pygame import mouse
 
 from scripts.player import PLAYER
 from scripts.furniture import Furniture
-from scripts.display import DISPLAY
+from scripts.display import DISPLAY, load_image
 from scripts.text import Text
 
 from nostalgiaeraycasting import RayCaster
@@ -79,6 +79,7 @@ class LivingRoom(Room):
 
         if PLAYER.z >= 2.5:
             from scripts.game import GAME
+            self.caster.clear_surfaces()
             GAME.CURRENT_ROOM = Corridor()
 
 
@@ -113,9 +114,11 @@ class Corridor(Room):
 
         if PLAYER.z < 2.5:
             from scripts.game import GAME
+            self.caster.clear_surfaces()
             GAME.CURRENT_ROOM = LivingRoom()
         if PLAYER.x < 1.:
             from scripts.game import GAME
+            self.caster.clear_surfaces()
             GAME.CURRENT_ROOM = BedRoom()
 
 
@@ -153,8 +156,9 @@ class BedRoom(Room):
         super().update(surface)
         if PLAYER.x >= 1.:
             from scripts.game import GAME
+            self.caster.clear_surfaces()
             GAME.CURRENT_ROOM = Corridor()
-        if PLAYER.z > 4.5:
+        if PLAYER.z > 5.0:
             from scripts.game import GAME
             PLAYER.movements = False
             PLAYER.x = -0.5
@@ -163,6 +167,7 @@ class BedRoom(Room):
             PLAYER.rot_y = 220
             PLAYER.rot_x = 5.
             Sound(join_path("data", "sounds", "door.mp3")).play()
+            self.caster.clear_surfaces()
             GAME.CURRENT_ROOM = BedRoomNightmare()
 
 
@@ -309,7 +314,9 @@ class LongCorridor(Room):
                 PLAYER.x = PLAYER.y = PLAYER.z = PLAYER.rot_x = 0
                 PLAYER.rot_y = 90
                 mouse.get_rel()
-                GAME.CURRENT_ROOM = TheEnd()  # TODO: change room
+                self.caster.clear_surfaces()
+                GAME.CURRENT_ROOM = InfiniteRoom()
+                GAME.TEXT = Text("You can't trust what you see in the dark.")
         else:
             if GAME.VIGNETTE > 1.5:
                 GAME.VIGNETTE -= DISPLAY.delta_time * 3
@@ -385,20 +392,120 @@ class TheEnd(Room):
 
 class InfiniteRoom(Room):
     def __init__(self):
-        from scripts.furniture import InfiniteRoomWalls
+        from scripts.furniture import InfiniteRoomWalls, FloatingEye
         super().__init__()
 
-        self.items.append(InfiniteRoomWalls(x=-0.5, z=-0.5))
+        self.walls = InfiniteRoomWalls(x=-0.5, z=-0.5)
+        self.items.append(self.walls)
 
-        self.collisions = [
+        self.items.append(FloatingEye(x=-0.3, y=1.8, z=0.1))
+        self.items.append(FloatingEye(x=0.4, y=1.6, z=-0.4, texture=2))
+        self.items.append(FloatingEye(x=0.9, y=1.7, z=0.6, texture=3))
+
+        self.items.append(FloatingEye(x=0.6, y=1.9, z=1.2))
+        self.items.append(FloatingEye(x=1.2, y=1.4, z=0.8, texture=2))
+        self.items.append(FloatingEye(x=-0.4, y=1.5, z=1.3, texture=3))
+
+        self.items.append(FloatingEye(x=1.4, y=1.9, z=-0.1))
+
+        self.room_number = 0
+        self.door_texture = load_image(join_path("data", "textures", "furniture", "door.png"))
+
+        self.default_collisions = [
             Rect(-50, -50, 200, 10),
             Rect(-50, -50, 10, 200),
             Rect(-50, 150, 200, 10),
-            Rect(-50, 150, 10, 200),
-
-            Rect(50, -50, 10, 200),
+            Rect(150, -50, 10, 200),
         ]
+
+        self.collisions = self.default_collisions + [Rect(50, -50, 10, 150)]
         self.load_static_surfaces(self.caster)
 
     def update(self, surface: Surface):
+        from scripts.furniture import Plant
+        from scripts.game import GAME
+        self.walls.mode = self.room_number
         super().update(surface)
+
+        if self.room_number < 3:
+            if GAME.VIGNETTE > 1.5:
+                GAME.VIGNETTE -= DISPLAY.delta_time * 3
+            else:
+                GAME.VIGNETTE = 1.5
+
+        match self.room_number:
+            case 0:
+                self.caster.add_surface(self.door_texture, -0.2, 1.8, -0.49, 0.2, 0, -0.49, rm=True)
+                if PLAYER.x > 0.5:
+                    self.room_number = 1
+                    self.collisions = self.default_collisions + [Rect(50, 0, 10, 100)]
+            case 1:
+                if PLAYER.z > 1.:
+                    if PLAYER.x < 1.0:
+                        self.caster.add_surface(self.door_texture, -0.2, 1.8, -0.49, 0.2, 0, -0.49, rm=True)
+                    if PLAYER.x < 0.5:
+                        self.room_number = 0
+                        self.collisions = self.default_collisions + [Rect(50, -50, 10, 150)]
+                else:
+                    if PLAYER.z < 0.5:
+                        self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                    if PLAYER.x < 0.5:
+                        self.room_number = 2
+
+            case 2:
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                if PLAYER.z < 1.:
+                    if PLAYER.x > 0.5:
+                        self.room_number = 1
+                else:
+                    self.room_number = 3
+                    self.collisions = self.default_collisions + [Rect(50, 0, 10, 100), Rect(50, 50, 50, 10)]
+                    self.items.append(Plant(x=0.75, z=0.75))
+                    self.caster.clear_surfaces()
+                    self.load_static_surfaces(self.caster)
+
+            case 3:
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                if PLAYER.z < 1.:
+                    if PLAYER.x < 0.5:
+                        self.room_number = 2
+                        self.items = self.items[:-1]
+                        self.caster.clear_surfaces()
+                        self.load_static_surfaces(self.caster)
+                        self.collisions = self.default_collisions + [Rect(50, 0, 10, 100)]
+                else:
+                    if PLAYER.x > 0.5:
+                        self.room_number = 4
+
+            case 4:
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                if PLAYER.z > 1.:
+                    if PLAYER.x < 0.5:
+                        self.room_number = 3
+                else:
+                    if PLAYER.x > 0.5:
+                        self.room_number = 5
+                        self.collisions = self.default_collisions + [Rect(50, 50, 10, 50), Rect(0, 50, 100, 10)]
+
+            case 5:
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, -0.2, -0.49, 0, 0.2, rm=True)
+                if PLAYER.z > 1.0:
+                    if PLAYER.x > 0.5:
+                        self.room_number = 4
+                        self.collisions = self.default_collisions + [Rect(50, 0, 10, 100), Rect(50, 50, 50, 10)]
+                else:
+                    if PLAYER.x < 0.5:
+                        self.room_number = 6
+                        self.collisions = self.default_collisions
+
+            case 6:
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, 0.9, -0.49, 0, 1.3, rm=True)
+                self.caster.add_surface(self.door_texture, -0.49, 1.8, -0.2, -0.49, 0, 0.2, rm=True)
+                GAME.VIGNETTE += DISPLAY.delta_time
+                if GAME.VIGNETTE > 7.0:
+                    GAME.TEXT = Text("Reality is not what it seems. Don't be fooled by the eyes.")
+                    GAME.CURRENT_ROOM = TheEnd()  # TODO: change
+                    mouse.get_rel()
+                    PLAYER.x = PLAYER.z = PLAYER.rot_x = 0
+                    PLAYER.rot_y = 90

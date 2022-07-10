@@ -7,7 +7,7 @@ from scripts.player import PLAYER
 from scripts.splash_screen import SPLASH_SCREEN
 from scripts.pause_menu import PAUSE_MENU
 from scripts.display import DISPLAY
-from scripts.room import Room, LivingRoom, InfiniteRoom
+from scripts.room import Room, LivingRoom
 from scripts.text import Text
 from scripts.end_screen import END_SCREEN
 
@@ -26,8 +26,8 @@ class GAME:
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
-    # CURRENT_ROOM: Room = LivingRoom()  # TODO: set to LivingRoom on release
-    CURRENT_ROOM: Room = InfiniteRoom()
+    CURRENT_ROOM: Room = LivingRoom()  # TODO: set to LivingRoom on release
+    # CURRENT_ROOM: Room = InfiniteRoom()
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
     VIGNETTE: float = 0

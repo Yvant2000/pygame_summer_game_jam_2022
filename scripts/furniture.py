@@ -106,8 +106,7 @@ class TV(Furniture):
                                      mouse.get_rel(),
                                      PLAYER.__setattr__("movements", True)
                                  ),
-                                 color=(15, 0, 0),
-                                 sound="mum_text.wav")
+                                 color=(15, 0, 0))
                 GAME.VIGNETTE = 1.5
                 self.end_game = True
         return [
@@ -664,6 +663,7 @@ class InfiniteRoomWalls(Furniture):
         self.mode = mode
         self.width = 2.0
         self.height = 2.0
+        self.texture = repeat_texture(load_image("data", "textures", "wall", "flower_wall.png"), 2, 2)
 
     def static_surfaces(self) -> list[tuple]:
         return [
@@ -695,5 +695,36 @@ class InfiniteRoomWalls(Furniture):
         ]
 
     def dynamic_surfaces(self) -> list[tuple]:
-        return []
+        match self.mode:
+            case 0:
+                return [(self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.75,
+                         self.x + self.width // 2, self.y, self.z,)]
+            case 1 | 2:
+                return [(self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.75,
+                         self.x + self.width // 2, self.y, self.z + self.width * 0.25,)]
+            case 3 | 4:
+                return [(self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.75,
+                         self.x + self.width // 2, self.y, self.z + self.width * 0.5,),
+                        (self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.5,
+                         self.x + self.width // 2, self.y, self.z + self.width * 0.25,),
+
+                        (self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.5,
+                         self.x + self.width * 0.75, self.y, self.z + self.width * 0.5,)]
+            case 5 | 6:
+                return [(self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.75,
+                         self.x + self.width // 2, self.y, self.z + self.width * 0.5,),
+
+                        (self.texture,
+                         self.x + self.width // 2, self.y + self.height, self.z + self.width * 0.5,
+                         self.x + self.width * 0.75, self.y, self.z + self.width * 0.5,),
+                        (self.texture,
+                         self.x, self.y + self.height, self.z + self.width * 0.5,
+                         self.x + self.width // 2, self.y, self.z + self.width * 0.5,),
+                        ]
 

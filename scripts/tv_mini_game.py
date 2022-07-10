@@ -303,7 +303,8 @@ class Cursy(Entity):
         self.hurt_sound = mixer.Sound(join_path("data", "mini_game", "sound", "ChitHurt.wav"))
         self.attack_sound = mixer.Sound(join_path("data", "mini_game", "sound", "Cattack.wav"))
         self.die_sound = mixer.Sound(join_path("data", "mini_game", "sound", "Cdie.wav"))
-
+        if nightmare:
+            self.hurt_sound.set_volume(0.5)
         self.damage_anim: float = 0.
 
         self.state = Cursy.STATE.WAIT
