@@ -20,7 +20,7 @@ from scripts.game import GAME
 
 #### __INIT__ ####
 
-DISPLAY.caption = "Game"  # TODO: find a game name
+DISPLAY.caption = "Nightmare Games"
 mouse.set_visible(False)
 pygame.mixer.init()
 

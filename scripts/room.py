@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from os.path import join as join_path
-from math import cos
+from math import sin, cos, radians, pi
+from random import uniform, choice
 
 from pygame import Surface, Rect
 from pygame.mixer import Sound
@@ -12,6 +13,7 @@ from scripts.display import DISPLAY, load_image
 from scripts.text import Text
 
 from nostalgiaeraycasting import RayCaster
+from nostalgiaefilters import distortion
 
 
 class Room(ABC):
@@ -45,22 +47,25 @@ class Room(ABC):
 
 class LivingRoom(Room):
     def __init__(self):
-        from scripts.furniture import Couch, TV, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, Corridor, Frame
+        from scripts.furniture import TV, Couch, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, CorridorWalls, Frame
         super().__init__()
         self.items.append(TV(-0.23, 1., 0.3))
-        self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
-        self.items.append(Couch(width=0.8, height=1.2, length=1.5, x=-0.8, y=0, z=-1.5))
-        self.items.append(LivingRoomWalls())
-        self.items.append(Plant(x=2., y=0, z=-2.3))
-        self.items.append(Door(x=-1.99, y=0, z=0.4, axis_x=False))
-        self.items.append(Door(x=2.49, y=0, z=0., axis_x=False))
-        self.items.append(Door(x=2.49, y=0, z=-2., axis_x=False))
-        self.items.append(Window(x=-1., y=0.8, z=-2.99))
-        self.items.append(Window(x=1., y=0.8, z=-2.99))
-        self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
-        self.items.append(Corridor())
-        self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
-        self.items.append(Frame(x=-1.99, y=1.7, z=-2))
+
+        self.init: bool = PLAYER.movements
+        if PLAYER.movements:
+            self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
+            self.items.append(Couch(width=0.8, height=1.2, length=1.5, x=-0.8, y=0, z=-1.5))
+            self.items.append(LivingRoomWalls())
+            self.items.append(Plant(x=2., y=0, z=-2.3))
+            self.items.append(Door(x=-1.99, y=0, z=0.4, axis_x=False))
+            self.items.append(Door(x=2.49, y=0, z=0., axis_x=False))
+            self.items.append(Door(x=2.49, y=0, z=-2., axis_x=False))
+            self.items.append(Window(x=-1., y=0.8, z=-2.99))
+            self.items.append(Window(x=1., y=0.8, z=-2.99))
+            self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
+            self.items.append(CorridorWalls())
+            self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
+            self.items.append(Frame(x=-1.99, y=1.7, z=-2))
 
         # self.items.append(BedRoomWalls())
         self.load_static_surfaces(self.caster)
@@ -75,7 +80,24 @@ class LivingRoom(Room):
         ]
 
     def update(self, surface: Surface):
+        from scripts.furniture import Couch, Drawer, LivingRoomWalls, Plant, Door, Window, Stairs, CorridorWalls, Frame
         super().update(surface)
+        if PLAYER.movements and not self.init:
+            self.init = True
+            self.items.append(Drawer(width=0.75, x=-0.3, y=0, z=0.23))
+            self.items.append(Couch(width=0.8, height=1.2, length=1.5, x=-0.8, y=0, z=-1.5))
+            self.items.append(LivingRoomWalls())
+            self.items.append(Plant(x=2., y=0, z=-2.3))
+            self.items.append(Door(x=-1.99, y=0, z=0.4, axis_x=False))
+            self.items.append(Door(x=2.49, y=0, z=0., axis_x=False))
+            self.items.append(Door(x=2.49, y=0, z=-2., axis_x=False))
+            self.items.append(Window(x=-1., y=0.8, z=-2.99))
+            self.items.append(Window(x=1., y=0.8, z=-2.99))
+            self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
+            self.items.append(CorridorWalls())
+            self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
+            self.items.append(Frame(x=-1.99, y=1.7, z=-2))
+            self.load_static_surfaces(self.caster)
 
         if PLAYER.z >= 2.5:
             from scripts.game import GAME
@@ -85,10 +107,10 @@ class LivingRoom(Room):
 
 class Corridor(Room):
     def __init__(self):
-        from scripts.furniture import LivingRoomWalls, Door, Stairs, Corridor, BedRoomWalls, ClosetClosed
+        from scripts.furniture import LivingRoomWalls, Door, Stairs, CorridorWalls, BedRoomWalls, ClosetClosed
         super().__init__()
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
-        self.items.append(Corridor())
+        self.items.append(CorridorWalls())
         self.items.append(LivingRoomWalls())
         self.items.append(Door(x=2.49, y=0, z=0., axis_x=False))
         self.items.append(Door(x=2.49, y=0, z=-2., axis_x=False))
@@ -124,10 +146,10 @@ class Corridor(Room):
 
 class BedRoom(Room):
     def __init__(self):
-        from scripts.furniture import Door, Stairs, Corridor, BedRoomWalls, ClosetClosed, Bed, Drawer
+        from scripts.furniture import Door, Stairs, CorridorWalls, BedRoomWalls, ClosetClosed, Bed, Drawer
         super().__init__()
         self.items.append(Stairs(x=1.80, y=0, z=1.0, width=0.8))
-        self.items.append(Corridor())
+        self.items.append(CorridorWalls())
         self.items.append(Door(x=1.8, y=2.0, z=3.99, ))
         self.items.append(Door(x=1., y=2.0, z=3.01))
         self.items.append(Door(x=-0.5, y=2.0, z=3.01))
@@ -173,9 +195,9 @@ class BedRoom(Room):
 
 class BedRoomNightmare(Room):
     def __init__(self):
-        from scripts.furniture import Door, Corridor, BedRoomWalls, ClosetClosed, Bed
+        from scripts.furniture import Door, CorridorWalls, BedRoomWalls, ClosetClosed, Bed
         super().__init__()
-        self.items.append(Corridor())
+        self.items.append(CorridorWalls())
         self.items.append(Door(x=-1.38, y=2.0, z=3.99, ))
         self.items.append(BedRoomWalls())
         self.items.append(ClosetClosed(x=-1.4, y=2, z=4.4))
@@ -201,8 +223,14 @@ class BedRoomNightmare(Room):
     def update(self, surface: Surface):
         super().update(surface)
         from scripts.game import GAME
-        from scripts.furniture import Door, Corridor, BedRoomWalls, ClosetOpened, Bed, Eyes
+        from scripts.furniture import Door, CorridorWalls, BedRoomWalls, ClosetOpened, Bed, Eyes
         self._anim += DISPLAY.delta_time
+        if self._anim >= 205:
+            temp = Surface(GAME.SURFACE.get_size())
+            distortion(GAME.SURFACE, temp, True, True, GAME.SURFACE.get_width() / 200, 0.1, 0.01)
+            temp.set_alpha(30)
+            GAME.SURFACE.blit(temp, (0, 0))
+
         if self._anim > 400:
             if GAME.VIGNETTE < 7.5:
                 GAME.VIGNETTE += DISPLAY.delta_time * 3
@@ -251,7 +279,7 @@ class BedRoomNightmare(Room):
             GAME.VIGNETTE += DISPLAY.delta_time * 3
             if GAME.VIGNETTE > 7.5:
                 self.items: list = []
-                self.items.append(Corridor())
+                self.items.append(CorridorWalls())
                 self.items.append(Door(x=-1.38, y=2.0, z=3.99, ))
                 self.items.append(BedRoomWalls())
                 self.items.append(Bed(x=-1.5, y=2, z=6.))
@@ -298,7 +326,9 @@ class LongCorridor(Room):
             0, 90,
             PLAYER.FOV, PLAYER.VIEW_DISTANCE,
         )
-        self.caster.add_surface(self.rec_surf.copy().convert_alpha(), -1.30 + PLAYER.x, 3.1, z, 1.30 + PLAYER.x, -0.1, z, rm=True)
+        self.caster.add_surface(
+            self.rec_surf.copy().convert_alpha(), -1.30 + PLAYER.x, 3.1, z, 1.30 + PLAYER.x, -0.1, z, rm=True
+                                                  )
 
         super().update(surface)
         if not self.monster:
@@ -337,7 +367,7 @@ class TheEnd(Room):
         ]
         from scripts.furniture import EndTV
         self.items.append(EndTV(-0.5, 1, 3))
-        self.eyes: bool = False
+        # self.eyes: bool = False
         self.game = self.items[0].mini_game  # type: ignore
 
         self.load_static_surfaces(self.caster)
@@ -346,27 +376,42 @@ class TheEnd(Room):
     def update(self, surface: Surface):
         from scripts.game import GAME
         from scripts.furniture import FloatingEye, Monster
-        if self.game.ev != 3:
+        if self.game.ev == 0:
             if GAME.VIGNETTE > 1.5:
                 GAME.VIGNETTE -= DISPLAY.delta_time * 3
 
-        if not self.game.pause and not self.eyes:
-            self.eyes = True
-            self.items.append(FloatingEye(x=-2.5, y=2.5, z=5, width=0.5, height=0.4))
-            self.items.append(FloatingEye(x=5, y=1.8, z=8, width=0.5, height=0.4, texture=2))
-            self.items.append(FloatingEye(x=1.0, y=1.2, z=-5, width=0.5, height=0.4, texture=3))
+        if not self.game.pause:
+            while len(self.items) < 15:
+                self.items.append(FloatingEye(
+                    x=uniform(-8, 8), y=uniform(1.6, 6), z=uniform(-5, 10), width=0.5, height=0.4,
+                    texture=choice((1, 2, 3))))  # type: ignore
 
-            self.items.append(FloatingEye(x=7, y=0.4, z=1., width=0.5, height=0.4))
-            self.items.append(FloatingEye(x=-4, y=3., z=-1, width=0.5, height=0.4, texture=2))
-            self.items.append(FloatingEye(x=-4, y=1.5, z=6, width=0.5, height=0.4, texture=3))
+            temp_list = [self.items[0]]
+            for eye in self.items[1:]:
+                temp_x = cos(radians(PLAYER.rot_y) - pi/2)
+                temp_z = sin(radians(PLAYER.rot_y) - pi/2)
+                if ((2 * temp_x) * (eye.z + temp_z) - (2 * temp_z) * (eye.x + temp_x)) >= 0.1:
+                    temp_list.append(eye)
 
-            self.items.append(FloatingEye(x=3, y=5., z=10., width=0.5, height=0.4))
-            self.items.append(FloatingEye(x=0.5, y=3., z=5, width=0.5, height=0.4, texture=2))
-            self.items.append(FloatingEye(x=-8, y=0.2, z=2, width=0.5, height=0.4, texture=3))
+            self.items = temp_list
 
-            self.items.append(FloatingEye(x=6, y=1., z=4, width=0.5, height=0.4))
-            self.items.append(FloatingEye(x=-3, y=2., z=3, width=0.5, height=0.4, texture=2))
-            self.items.append(FloatingEye(x=4, y=1.6, z=4, width=0.5, height=0.4, texture=3))
+            # if not self.eyes:
+            #     self.eyes = True
+            #     self.items.append(FloatingEye(x=-2.5, y=2.5, z=5, width=0.5, height=0.4))
+            #     self.items.append(FloatingEye(x=5, y=1.8, z=8, width=0.5, height=0.4, texture=2))
+            #     self.items.append(FloatingEye(x=1.0, y=1.2, z=-5, width=0.5, height=0.4, texture=3))
+            #
+            #     self.items.append(FloatingEye(x=7, y=0.4, z=1., width=0.5, height=0.4))
+            #     self.items.append(FloatingEye(x=-4, y=3., z=-1, width=0.5, height=0.4, texture=2))
+            #     self.items.append(FloatingEye(x=-4, y=1.5, z=6, width=0.5, height=0.4, texture=3))
+            #
+            #     self.items.append(FloatingEye(x=3, y=5., z=10., width=0.5, height=0.4))
+            #     self.items.append(FloatingEye(x=0.5, y=3., z=5, width=0.5, height=0.4, texture=2))
+            #     self.items.append(FloatingEye(x=-8, y=0.2, z=2, width=0.5, height=0.4, texture=3))
+            #
+            #     self.items.append(FloatingEye(x=6, y=1., z=4, width=0.5, height=0.4))
+            #     self.items.append(FloatingEye(x=-3, y=2., z=3, width=0.5, height=0.4, texture=2))
+            #     self.items.append(FloatingEye(x=4, y=1.6, z=4, width=0.5, height=0.4, texture=3))
 
         if PLAYER.z > 2.35 and (-0.5 < PLAYER.x < -0.0):
             PLAYER.z = 2.45
@@ -388,6 +433,37 @@ class TheEnd(Room):
                 GAME.STATE = GAME.STATE.TITLE_END
                 Sound(join_path("data", "sounds", "breath.wav")).play()
         super().update(surface)
+
+        if len(self.game.entities) > 1:
+            temp1 = Surface(GAME.SURFACE.get_size())
+            temp2 = Surface(GAME.SURFACE.get_size())
+            temp3 = Surface(GAME.SURFACE.get_size())
+            distortion(
+                GAME.SURFACE, temp1, True, True,
+                (20 - self.game.entities[1].life) * GAME.SURFACE.get_width() / 1500, 0.05, 0.01)
+            temp1.set_alpha(50 - self.game.entities[1].life)
+            distortion(
+                GAME.SURFACE, temp2, True, True,
+                (20 - self.game.entities[1].life) * GAME.SURFACE.get_width() / 1000, 0.01, 0.01)
+            temp2.set_alpha(20 - self.game.entities[1].life)
+            distortion(
+                GAME.SURFACE, temp3, True, True,
+                (20 - self.game.entities[1].life) * GAME.SURFACE.get_width() / 500, 0.005, 0.005)
+            temp3.set_alpha((20 - self.game.entities[1].life) // 2)
+
+            GAME.SURFACE.blit(temp1, (0, 0))
+            GAME.SURFACE.blit(temp2, (0, 0))
+            GAME.SURFACE.blit(temp3, (0, 0))
+
+            if self.game.entities[1].damage_anim > 0.:
+                temp4 = Surface(GAME.SURFACE.get_size())
+                distortion(
+                    GAME.SURFACE, temp4, True, True,
+                    (20 - self.game.entities[1].life) * GAME.SURFACE.get_width() / 250, 100, 1
+                )
+                temp4.set_alpha(512 * self.game.entities[1].damage_anim)
+                GAME.SURFACE.blit(temp4, (0, 0))
+                GAME.VIGNETTE += DISPLAY.delta_time * 0.1
 
 
 class InfiniteRoom(Room):
@@ -504,8 +580,9 @@ class InfiniteRoom(Room):
                 self.caster.add_surface(self.door_texture, -0.49, 1.8, -0.2, -0.49, 0, 0.2, rm=True)
                 GAME.VIGNETTE += DISPLAY.delta_time
                 if GAME.VIGNETTE > 7.0:
-                    GAME.TEXT = Text("Reality is not what it seems. Don't be fooled by the eyes.")
-                    GAME.CURRENT_ROOM = TheEnd()  # TODO: change
+                    GAME.TEXT = Text("Reality is not what it seems.")
+                    self.caster.clear_surfaces()
+                    GAME.CURRENT_ROOM = TheEnd()  # TODO: add more rooms
                     mouse.get_rel()
                     PLAYER.x = PLAYER.z = PLAYER.rot_x = 0
                     PLAYER.rot_y = 90

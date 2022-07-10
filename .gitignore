@@ -13,3 +13,5 @@ MANIFEST
 *.exp
 *.lib
 *.pyd
+compile
+dlls/

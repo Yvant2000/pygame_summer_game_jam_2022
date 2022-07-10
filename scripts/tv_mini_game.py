@@ -21,7 +21,6 @@ class TvGame:
         self.pause_image: Surface = load_image("data", "mini_game", "pause.png")
         self.game_over_image: Surface = load_image("data", "mini_game", "game_over.png")
         self.music = mixer.Sound(join_path("data", "mini_game", "sound", "Monster Slayer.wav" if nightmare else "Monster Killer.wav"))
-        self.music.set_volume(0.7)
         self.background_deca: int = 0
         self.entities: list[Entity] = [Knight(x=100, y=160)]
         if nightmare:
@@ -80,7 +79,7 @@ class TvGame:
         from scripts.game import GAME
         from scripts.text import Text
         if self.background_deca > 700 and self.ev < 2:
-            self.music.set_volume(0.4)
+            self.music.set_volume(0.6)
             self.music.play(-1, fade_ms=4000)
             self.ev = 2
             self.entities.append(Cursy(x=1000, nightmare=True))
@@ -97,7 +96,7 @@ class TvGame:
                 self._anim = 0
                 temp = []
                 for ent in self.entities:
-                    if ent.life > 3 or ((not ent.x < self.background_deca - 200) and (not ent.x > self.background_deca + 500)):
+                    if ent.life > 3 or (not ent.x < self.background_deca - 200 and not ent.x > self.background_deca + 500):
                         temp.append(ent)
                 self.entities = temp
 
@@ -449,7 +448,7 @@ class Knight(Entity):
         else:
             self._jump = 0.
 
-        if self.damage_anim > 0:
+        if self.damage_anim > 0.3:
             return
 
         match self.state:
@@ -468,7 +467,7 @@ class Knight(Entity):
                     self.state = Knight.STATE.PRE_ATTACK
                     self._anim = 0
             case _:
-                if PLAYER.keys[K_d] or PLAYER.keys[K_RIGHT]:
+                if PLAYER.keys[K_d] or PLAYER.keys[K_RIGHT] and self.x < 1200:
                     if self.state != Knight.STATE.JUMP:
                         self.state = Knight.STATE.WALK
                     self.right = True
@@ -503,7 +502,7 @@ class Knight(Entity):
         return surf if self.right else transform.flip(surf, True, False)
 
     def get_surf(self) -> Surface:
-        if self.damage_anim > 0:
+        if self.damage_anim > 0.3:
             return self.hurt
         anim: int = int(self._anim * 50)
         match self.state:
@@ -519,8 +518,8 @@ class Knight(Entity):
                 return self.base
 
     def damage(self, direction: bool = False):
-        if self.damage_anim > 0:
+        if self.damage_anim > 0.0:
             return
         self.hurt_sound.play()
-        self.damage_anim = 0.5
+        self.damage_anim = 0.8
         self.x += 20 * ((-1) ** direction)

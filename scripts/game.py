@@ -26,8 +26,8 @@ class GAME:
     STATE: GAME_STATE = GAME_STATE.SPLASH_SCREEN
     SCREEN_SIZE_MULTIPLIER: float = 0.1
     SURFACE: Surface = Surface((DISPLAY.width * SCREEN_SIZE_MULTIPLIER, DISPLAY.height * SCREEN_SIZE_MULTIPLIER))
-    CURRENT_ROOM: Room = LivingRoom()  # TODO: set to LivingRoom on release
-    # CURRENT_ROOM: Room = InfiniteRoom()
+    # CURRENT_ROOM: Room = TheEnd()  # TODO: set to LivingRoom on release
+    CURRENT_ROOM: Room = LivingRoom()
     ESCAPE_PRESSED: bool = False
     TEXT: Text | None = None
     VIGNETTE: float = 0

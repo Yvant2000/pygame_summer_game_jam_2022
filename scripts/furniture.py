@@ -289,7 +289,7 @@ class Stairs(Furniture):
         return []
 
 
-class Corridor(Furniture):
+class CorridorWalls(Furniture):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
