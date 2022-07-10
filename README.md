@@ -38,8 +38,7 @@ For the Jam, we had to change our ideas to be able to finish the game in less th
 
 ### Releases
 
-- Windows :
-"<insert download link here>"
+- [Windows Release](https://github.com/Yvant2000/pygame_summer_game_jam_2022/releases/download/v1.0.0/Nightmare.Games.exe)
 
 ### Building from source
 
