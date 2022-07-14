@@ -48,8 +48,8 @@ Download the source project then install all the needed dependencies to run the 
 
 - Python 3.10.x ([Python Download page](https://www.python.org/downloads/))
 - Pygame 2.1.2 (`pip install pygame -U`)
-- ~~NostalgiaeRayCasting (`pip install -e RayCasting`)~~ Not yet released
-- ~~NostalgiaeFilter (`pip install -e Filter`)~~ Not yet released
+- NostalgiaeRayCasting (`pip install -e RayCasting` in the C_libs folder)
+- NostalgiaeFilter (`pip install -e Filter` in the C_libs folder)
 
 The game is compiled using [Nuitka](https://nuitka.net/doc/user-manual.html#installation).
 
